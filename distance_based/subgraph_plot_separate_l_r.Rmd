@@ -1,0 +1,229 @@
+---
+output:
+  pdf_document: default
+  html_document: default
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=FALSE, warning=FALSE, message=FALSE)
+```
+
+```{r}
+require('igraph')
+require('ggplot2')
+require('reshape')
+require('lsr')
+require('transport')
+require('fields')
+
+setwd("c:/Users/leo/git/ABadea/")
+
+listGs<- list.files(path = "./graphml/", pattern = "*.graphml")
+
+#read in covariates and graph list
+#find those with common ids, sort by id
+
+covariates<- read.csv("./covariates/predictors.csv",stringsAsFactors = F)
+ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
+common_id<- intersect(covariates$RUNNO , ids)
+
+covariates <- covariates[covariates$RUNNO%in%common_id,]
+covariates <- covariates[order(covariates$RUNNO),]  
+
+listGs<- listGs[ids%in%common_id]
+listGs<- listGs[order(listGs)]
+
+graphList<- lapply(listGs, function(x){
+  read.graph( file = paste("./graphml/",x,sep = ""),format = "graphml")
+})
+
+AdjacencyList<- lapply(graphList, function(x){
+  get.adjacency(x)
+})
+
+HemisphereList<- lapply(graphList, function(x){
+  get.vertex.attribute(x,name="hemisphere")
+})
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+n = nrow(AdjacencyList[[1]])
+m = length(AdjacencyList)
+```
+
+```{r, echo=FALSE}
+computeTV<-function(a,b){
+  breaks = hist(c(a,b),breaks = 5,plot = F)$breaks
+  ha = hist(a,breaks=breaks,plot = F)$density
+  hb = hist(b,breaks=breaks,plot = F)$density
+  ha = ha/sum(ha)
+  hb = hb/sum(hb)
+  sum(abs(ha - hb))/2
+}
+
+computeKS<- function(a,b){
+  ks_test = ks.test(a,b,warning=FALSE)
+  ks_test$statistic
+}
+
+plotDistance<- function(x,main="", q =0.95){
+  plot(x,xlab="Vertex Index",ylab="Distance",main=main)
+  lines(x, col=((x>quantile(x, q)) +1), type="p")
+}
+
+
+getIndexOfLargeDistance<- function(x, q =0.95){
+  c(1:length(x))[x>quantile(x, q)]
+}
+
+get3Distances<- function(a,b){
+  tv<- sapply(c(1:n),function(i) computeTV(a[,i],b[,i]))
+  ws<- sapply(c(1:n),function(i)  wasserstein1d(a[,i],b[,i]))
+  ks<- sapply(c(1:n),function(i)  computeKS(a[,i],b[,i]))
+  list("TV"=tv,"WS"=ws,"KS"=ks)
+}
+
+sliceMeans<- function(A){
+  B = matrix(c(A),nrow(A)*ncol(A),dim(A)[3])
+  matrix(rowMeans(B), nrow(A))
+}
+
+```
+
+
+
+##Selected Subgraph in Comparing Different Genotypes
+
+Select the most different 5% vertices based on degree distribution, using Wasserstein distance.
+
+```{r}
+degreeMat<- do.call("rbind",DegreeList)
+d0 =degreeMat[covariates$GENOTYPE==0,]
+d1 =degreeMat[covariates$GENOTYPE==1,]
+d2 =degreeMat[covariates$GENOTYPE==2,]
+
+```
+
+Comparing genotype 1 vs 2 on the subgraph.
+
+The average connectivity is shown:
+
+```{r}
+dist = get3Distances(d1,d2)
+topVertex = getIndexOfLargeDistance(dist$WS)
+```
+
+```{r}
+tensorA = array(unlist(lapply(AdjacencyList,as.matrix)),c(n,n,m))
+
+A1 = tensorA[,,covariates$GENOTYPE==1]
+A2 = tensorA[,,covariates$GENOTYPE==2]
+
+par(mfrow=c(1,2),las=2)
+
+image(sliceMeans(A1[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=1")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+image(sliceMeans(A2[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=2")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+```
+
+Here are one with legend.
+
+```{r}
+par(mfrow=c(1,1),las=2)
+
+image.plot(sliceMeans(A1[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=1",col=heat.colors(10))
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+```
+
+
+##Comparing genotype 1 vs 2, stratified by sex. Assuming Female:sex=1, Male:sex=2
+
+
+```{r}
+tensorA = array(unlist(lapply(AdjacencyList,as.matrix)),c(n,n,m))
+
+A1M = tensorA[,,(covariates$GENOTYPE==1 & covariates$GENDER==2)]
+A1F = tensorA[,,(covariates$GENOTYPE==1 & covariates$GENDER==1)]
+A2M = tensorA[,,(covariates$GENOTYPE==2 & covariates$GENDER==2)]
+A2F = tensorA[,,(covariates$GENOTYPE==2 & covariates$GENDER==1)]
+
+par(mfrow=c(1,2),las=2)
+
+
+image(sliceMeans(A1F[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=1, Female")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+image(sliceMeans(A1M[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=1, Male")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+image(sliceMeans(A2F[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=2, Female")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+image(sliceMeans(A2M[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Genotype=2, Male")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+```
+
+The count of the each category:
+
+```{r}
+
+covariates_geno12 = covariates[covariates$GENOTYPE!=0,]
+
+covariates_geno12$GENOTYPE = sapply(covariates_geno12$GENOTYPE, function(x)paste("GENOTYPE=",x))
+
+covariates_geno12$GENDER = sapply(covariates_geno12$GENDER, function(x)paste("SEX=",x))
+table(covariates_geno12$GENOTYPE,covariates_geno12$GENDER)
+
+```
+
+##Reference: The subgraphs of two sex, averaged over population.
+
+The vertices are the same ones that were used to differentiate genotypes.
+
+```{r}
+tensorA = array(unlist(lapply(AdjacencyList,as.matrix)),c(n,n,m))
+
+AM = tensorA[,,(covariates$GENOTYPE==1 & covariates$GENDER==2)]
+AF = tensorA[,,(covariates$GENOTYPE==1 & covariates$GENDER==1)]
+
+par(mfrow=c(1,2),las=2)
+
+image(sliceMeans(AF[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Female")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+image(sliceMeans(AM[topVertex,topVertex,]),zlim=c(0,1), axes=F,main="Male")
+axis(1,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex )
+axis(2,at=seq(0, 1, length.out = length(topVertex)),labels = topVertex)
+
+```
+
+##Regression of the median degree of the top 5% using the predictors (age, sex,genotypes):
+
+In here, we first compute the degrees of the selected vertices for each subject, and choose the median as the point estimate of the connectivity for each subject. Then we apply simple linear regression on this outcome. Here are the summary:
+
+```{r}
+
+medianDegree = round(sapply(c(1:m),function(x) median(DegreeList[[x]][topVertex])))
+medianDegree = medianDegree[covariates$GENOTYPE!=0]
+
+lm_fit = lm( medianDegree~ as.factor(covariates_geno12$GENDER) +as.factor(covariates_geno12$GENOTYPE) + (covariates_geno12$AGE_WEEKS))
+
+summary(lm_fit)
+
+```
+
+*genotype = 2* has a significant negative effect, which means it causes degree drop compared to *genotype =1*.
