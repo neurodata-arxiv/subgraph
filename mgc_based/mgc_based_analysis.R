@@ -2,8 +2,10 @@ require('igraph')
 require('ggplot2')
 require('reshape')
 # require('lsr')
-
-
+source("MGCSampleStat.R")
+source("MGCPermutationTest.R")
+require("ggplot2")
+require("fields")
 
 setwd("~/git/subgraph/mgc_based/")
 
@@ -45,9 +47,7 @@ library(ecodist)
 library(energy)
 library(HHG)
 source("MGCLocalCorr.R")
-
-
-source("./MGCSampleStat.R")
+source("MGCSampleStat.R")
 
 
 LowerTriMatrix = sapply(AdjacencyList,function(x){
@@ -58,28 +58,49 @@ LowerTriMatrix = sapply(AdjacencyList,function(x){
 
 AdjMatrix = t(LowerTriMatrix[,covariates$GENOTYPE>=1])
 GenoType = covariates$GENOTYPE[covariates$GENOTYPE>=1]
+Gender = covariates$GENDER[covariates$GENOTYPE>=1]
+
 
 A = as.matrix(dist(AdjMatrix))
 B = as.matrix(dist(GenoType))
+C = as.matrix(dist(Gender))
+####
+orderByGenotype = order(GenoType)
 
+m = nrow(A)
+
+df = data.frame( "idx"=rep(c(1:m),m),"dist" = c(A), "id"=as.factor(rep(c(1:m),each=m)),"GenoType"=as.factor(rep(GenoType,each=m)),"Gender"=as.factor(rep(Gender,each=m)))
+
+ggplot(df, aes(x=idx, y=dist,col=GenoType)) +  geom_point(shape=1)+ facet_grid(~id)
+
+ggplot(df, aes(x=idx, y=dist,col=Gender)) +  geom_point(shape=1)+ facet_grid(~id)
+
+image.plot(A)
+image.plot(B)
+
+#####
+orderByGender = order(Gender)
+
+image.plot(A[orderByGender,orderByGender])
+image.plot(C[orderByGender,orderByGender])
+
+##### test against Genotype ####
 mgc_result = MGCSampleStat(A,B)
 mgc_result
 
+MGCLocalCorr(A,B,option='mcor')$corr
 
-ldcorr=MGCLocalCorr(A,B,option='dcor')$corr;
-lmdcorr=MGCLocalCorr(A,B,option='mcor')$corr
-lmantel=MGCLocalCorr(A,B,option='mantel')$corr
+permuate_test = MGCPermutationTest(A,B,rep=1000,option='mcor')
+permuate_test
+#############################
 
-ldcorr
-lmdcorr
-lmantel
+##### test against Gender ####
+mgc_result = MGCSampleStat(A,C)
+mgc_result
 
+MGCLocalCorr(A,C,option='mcor')$corr
 
-### Permutation Test of local corr
-source("MGCSampleStat.R")
-test=MGCSampleStat(A,B)
-test
+permuate_test = MGCPermutationTest(A,C,rep=1000,option='mcor')
+permuate_test
+#############################
 
-source("MGCPermutationTest.R")
-test=MGCPermutationTest(A,B,rep=1000,option='mcor')
-test

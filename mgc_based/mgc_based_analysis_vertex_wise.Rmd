@@ -1,0 +1,166 @@
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=T, warning=FALSE, message=FALSE)
+```
+
+
+```{r}
+
+require('igraph')
+require('ggplot2')
+require('reshape')
+# require('lsr')
+source("MGCSampleStat.R")
+source("MGCPermutationTest.R")
+require("ggplot2")
+require("fields")
+
+setwd("~/git/subgraph/mgc_based/")
+
+listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
+
+#read in covariates and graph list
+#find those with common ids, sort by id
+
+covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
+common_id<- intersect(covariates$RUNNO , ids)
+
+covariates <- covariates[covariates$RUNNO%in%common_id,]
+covariates <- covariates[order(covariates$RUNNO),]  
+
+listGs<- listGs[ids%in%common_id]
+listGs<- listGs[order(listGs)]
+
+graphList<- lapply(listGs, function(x){
+  read.graph( file = paste("../graphml/",x,sep = ""),format = "graphml")
+})
+
+AdjacencyList<- lapply(graphList, function(x){
+  get.adjacency(x)
+})
+
+HemisphereList<- lapply(graphList, function(x){
+  get.vertex.attribute(x,name="hemisphere")
+})
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+n = nrow(AdjacencyList[[1]])
+########################
+## Compute all local corr
+library(ecodist)
+library(energy)
+library(HHG)
+source("MGCLocalCorr.R")
+source("MGCSampleStat.R")
+
+
+LowerTriMatrix = sapply(AdjacencyList,function(x){
+  x = as.matrix(x)
+  x[lower.tri(x)]
+})
+
+
+AdjMatrix = t(LowerTriMatrix[,covariates$GENOTYPE>=1])
+GenoType = covariates$GENOTYPE[covariates$GENOTYPE>=1]
+Gender = covariates$GENDER[covariates$GENOTYPE>=1]
+
+
+A = as.matrix(dist(AdjMatrix))
+B = as.matrix(dist(GenoType))
+C = as.matrix(dist(Gender))
+m = nrow(A)
+
+```
+
+```{r}
+
+distVertex <- lapply( c(1:n),function(i){
+  AdjVec = LowerTriMatrix = sapply(AdjacencyList,function(x){
+    x = as.matrix(x)
+    x[,i]
+  })
+  
+  subsetMat = t(AdjVec[,covariates$GENOTYPE>=1])
+  A = as.matrix(dist(subsetMat))
+  A
+})
+
+```
+
+
+# Test over Genotype
+
+```{r}
+# 
+# mgc_result = sapply(distVertex, function(x) {MGCSampleStat(x,B)})
+# perm_result = sapply(distVertex, function(x) {
+#     permuate_test = MGCPermutationTest(x,B,rep=500,option='mcor')
+#     permuate_test$pMGC
+#     })
+# 
+# local_result=  sapply(distVertex, function(x) {
+#       lCor = MGCLocalCorr(x,B,option='mcor')$corr
+#       lCor[nrow(lCor),1]
+#     })
+# 
+# 
+# genotype_vertex_list = list("mgc_result"=mgc_result, "perm_result"=perm_result, "local_result" = local_result)
+# save(genotype_vertex_list,file= "genotype_vertex_list.RDa")
+
+```
+
+
+
+```{r}
+load(file= "genotype_vertex_list.RDa")
+
+df = data.frame( "value"= c(genotype_vertex_list$mgc_result, -log(genotype_vertex_list$perm_result), genotype_vertex_list$local_result), "vertex"= rep(c(1:n),3),"metric"=as.factor(rep(c("mgc","perm.log.p.value","local"),each=n)))
+
+ggplot(df, aes(x=vertex, y=value)) +  geom_point(shape=1)+facet_grid(metric~., scales="free_y")
+
+
+
+```
+
+
+
+#Test over Gender
+
+
+```{r}
+
+# mgc_result = sapply(distVertex, function(x) {MGCSampleStat(x,C)})
+# perm_result = sapply(distVertex, function(x) {
+#     permuate_test = MGCPermutationTest(x,C,rep=500,option='mcor')
+#     permuate_test$pMGC
+#     })
+# 
+# local_result=  sapply(distVertex, function(x) {
+#       lCor = MGCLocalCorr(x,C,option='mcor')$corr
+#       lCor[nrow(lCor),1]
+#     })
+# 
+# 
+# gender_vertex_list = list("mgc_result"=mgc_result, "perm_result"=perm_result, "local_result" = local_result)
+# save(gender_vertex_list,file= "gender_vertex_list.RDa")
+
+```
+
+
+
+```{r}
+load(file= "gender_vertex_list.RDa")
+
+df = data.frame( "value"= c(gender_vertex_list$mgc_result, -log(gender_vertex_list$perm_result), gender_vertex_list$local_result), "vertex"= rep(c(1:n),3),"metric"=as.factor(rep(c("mgc","perm.log.p.value","local"),each=n)))
+
+ggplot(df, aes(x=vertex, y=value)) +  geom_point(shape=1)+facet_grid(metric~., scales="free_y")
+```
