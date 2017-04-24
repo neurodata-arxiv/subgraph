@@ -1,0 +1,182 @@
+---
+title: "Title"
+author: "Author"
+date: '`r Sys.Date()`'
+output:
+  md_document: 
+    variant: markdown_github
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=F, warning=FALSE, message=FALSE)
+```
+
+
+```{r}
+setwd("~/git/subgraph/mgc_based/")
+
+require('igraph')
+require('ggplot2')
+require('fields')
+
+options(max.print=100)
+
+listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
+
+#read in covariates and graph list
+#find those with common ids, sort by id
+
+covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
+common_id<- intersect(covariates$RUNNO , ids)
+
+covariates <- covariates[covariates$RUNNO%in%common_id,]
+covariates <- covariates[order(covariates$RUNNO),]  
+
+listGs<- listGs[ids%in%common_id]
+listGs<- listGs[order(listGs)]
+
+graphList<- lapply(listGs, function(x){
+  read.graph( file = paste("../graphml/",x,sep = ""),format = "graphml")
+})
+
+AdjacencyList<- lapply(graphList, function(x){
+  get.adjacency(x)
+})
+
+HemisphereList<- lapply(graphList, function(x){
+  get.vertex.attribute(x,name="hemisphere")
+})
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+n = nrow(AdjacencyList[[1]])
+####
+
+AdjacencyListPick =  list()
+for(i in 1:length(AdjacencyList)){
+  if(covariates$GENOTYPE[i]>=1){
+    AdjacencyListPick[[length(AdjacencyListPick)+1]] = AdjacencyList[[i]]
+  }
+}
+
+GENOTYPEPick = covariates$GENOTYPE[covariates$GENOTYPE>=1]
+
+m = length(GENOTYPEPick)
+```
+
+
+#Raw Adjacency Plots
+
+Raw Adjacency Plots for Genotype 1
+
+```{r}
+
+
+#genotype 1
+geno1 = c(1:m)[GENOTYPEPick == 1]
+par(mfrow=c(1,2))
+for(i in geno1){
+    img = 1-as.matrix(AdjacencyListPick[[i]])
+    image(img, col  = gray((0:32)/32),main=i)
+}
+
+```
+
+
+Raw Adjacency Plots for Genotype 2
+
+```{r}
+#genotype 2
+geno2 = c(1:m)[GENOTYPEPick == 2]
+par(mfrow=c(1,2))
+for(i in geno2){
+    img = 1-as.matrix(AdjacencyListPick[[i]])
+    image(img, col  = gray((0:32)/32),main=i)
+}
+
+
+```
+
+
+#Average Adjacency Plots
+
+Genotype 1
+
+```{r}
+
+Asum = matrix(0, n,n)
+for(i in geno1){
+    Asum = Asum + as.matrix(AdjacencyListPick[[i]])
+}
+
+avgGeno1 = Asum/length(geno1)
+
+image.plot(avgGeno1)
+
+```
+Genotype 2
+
+```{r}
+
+
+
+Asum = matrix(0, n,n)
+for(i in geno2){
+    Asum = Asum + as.matrix(AdjacencyListPick[[i]])
+}
+
+avgGeno2 = Asum/length(geno2)
+
+image.plot(avgGeno2)
+
+
+```
+
+
+#Degree Distribution
+
+Plotted over two genotypes
+
+```{r}
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+DegreeListMat = do.call("cbind", DegreeList)
+
+DegreeListPick = DegreeListMat[,covariates$GENOTYPE>=1]
+
+
+
+df = data.frame("degree"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)))
+
+ggplot(data=df, aes(degree,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~genotype)
+
+```
+
+
+#Betweenness Centrality Distribution
+
+Plotted over two genotypes
+
+```{r}
+
+
+DegreeList<- lapply(graphList, function(x){
+  betweenness(x)
+})
+
+DegreeListMat = do.call("cbind", DegreeList)
+
+DegreeListPick = DegreeListMat[,covariates$GENOTYPE>=1]
+
+df = data.frame("betweenness"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)))
+
+ggplot(data=df, aes(betweenness,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~genotype)
+
+```
