@@ -45,6 +45,15 @@ AdjacencyList<- lapply(graphList, function(x){
   get.adjacency(x)
 })
 
+n = nrow(AdjacencyList[[1]])
+half = c(1:(n/2))
+reordered = c( half*2-1,half*2)
+
+
+AdjacencyList<- lapply(AdjacencyList, function(x){
+  x[reordered,reordered]
+})
+
 HemisphereList<- lapply(graphList, function(x){
   get.vertex.attribute(x,name="hemisphere")
 })
@@ -53,7 +62,6 @@ DegreeList<- lapply(AdjacencyList, function(x){
   rowSums(as.matrix(x))
   })
 
-n = nrow(AdjacencyList[[1]])
 ####
 
 AdjacencyListPick =  list()
