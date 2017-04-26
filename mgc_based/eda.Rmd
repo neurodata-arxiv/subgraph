@@ -188,3 +188,94 @@ df = data.frame("betweenness"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),eac
 ggplot(data=df, aes(betweenness,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~genotype)
 
 ```
+
+
+
+
+#Left and Right
+
+```{r}
+
+left_idx = c(1: (n/2))
+right_idx = c((n/2+1):n)
+
+LRSumList = lapply( AdjacencyListPick, function(x){
+  A = matrix(0,2,2)
+  A[1,1] = sum(x[left_idx,left_idx])
+  A[1,2] = sum(x[left_idx,right_idx])
+  A[2,2] = sum(x[right_idx,right_idx])
+  A[2,1] = A[1,2]
+  A
+})
+
+
+```
+
+
+Genotype1
+
+```{r}
+par(mfrow=c(1,2))
+for(i in geno1){
+    img = as.matrix(LRSumList[[i]])
+    image.plot(img,main=i, zlim=c(0,7000))
+}
+
+```
+
+
+Genotype2
+
+```{r}
+par(mfrow=c(1,2))
+for(i in geno2){
+    img = as.matrix(LRSumList[[i]])
+    image.plot(img,main=i, zlim=c(0,7000))
+}
+
+```
+
+
+
+Average
+
+Genotype 1
+
+```{r}
+
+Asum = matrix(0, 2,2)
+for(i in geno1){
+    Asum = Asum + as.matrix(LRSumList[[i]])
+}
+
+avgGeno1 = Asum/length(geno1)
+
+image.plot(avgGeno1, zlim=c(0,7000))
+
+```
+Genotype 2
+
+```{r}
+
+
+
+Asum = matrix(0, 2,2)
+for(i in geno2){
+    Asum = Asum + as.matrix(LRSumList[[i]])
+}
+
+avgGeno2 = Asum/length(geno2)
+
+image.plot(avgGeno2, zlim=c(0,7000))
+
+```
+
+
+Plot the genotype1(black) vs genotype2(red) in the edge count in each block.
+
+```{r}
+
+plot(c(avgGeno1),ylim=c(0,6000))
+lines(c(avgGeno2),col="red",type="p")
+
+```

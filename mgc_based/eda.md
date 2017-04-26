@@ -31,3 +31,26 @@ Betweenness Centrality Distribution
 Plotted over two genotypes
 
 ![](Figs/unnamed-chunk-7-1.png)
+
+Left and Right
+==============
+
+Genotype1
+
+![](Figs/unnamed-chunk-9-1.png)![](Figs/unnamed-chunk-9-2.png)![](Figs/unnamed-chunk-9-3.png)![](Figs/unnamed-chunk-9-4.png)![](Figs/unnamed-chunk-9-5.png)
+
+Genotype2
+
+![](Figs/unnamed-chunk-10-1.png)![](Figs/unnamed-chunk-10-2.png)![](Figs/unnamed-chunk-10-3.png)![](Figs/unnamed-chunk-10-4.png)![](Figs/unnamed-chunk-10-5.png)![](Figs/unnamed-chunk-10-6.png)
+
+Average
+
+Genotype 1
+
+![](Figs/unnamed-chunk-11-1.png) Genotype 2
+
+![](Figs/unnamed-chunk-12-1.png)
+
+Plot the genotype1(black) vs genotype2(red) in the edge count in each block.
+
+![](Figs/unnamed-chunk-13-1.png)
