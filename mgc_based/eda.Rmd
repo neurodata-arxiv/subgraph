@@ -279,3 +279,243 @@ plot(c(avgGeno1),ylim=c(0,6000))
 lines(c(avgGeno2),col="red",type="p")
 
 ```
+
+```{r}
+z.test2sam = function(a, b, var.a, var.b){
+   n.a = length(a)
+   n.b = length(b)
+   zeta = (mean(a) - mean(b)) / (sqrt(var.a/n.a + var.b/n.b))
+   return(zeta)
+}
+
+```
+
+# total edges
+```{r}
+
+total_edges<-sapply(LRSumList, function(x){
+  sum(x)
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+```
+
+
+
+Use MLE for p_1 and p_2 in the two binomial population, plug in n^2*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
+
+```{r}
+
+
+n1 = sum(df$genotype==1)
+p1 = sum(total_edges[df$genotype==1]) / (n^2) /n1
+
+sigma2.x1 = (n^2/4)*p1*(1-p1)
+
+n2 = sum(df$genotype==2)
+p2 = sum(total_edges[df$genotype==2]) / (n^2) /n2
+
+sigma2.x2 = (n^2/4)*p2*(1-p2)
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+# t.test(x1,x2,alternative = "greater")
+
+zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
+
+pvalue = 1 - pnorm(zstat)
+
+print("z")
+zstat
+print("one-sided p-value")
+pvalue
+
+```
+
+
+Direct two sample t-test
+
+```{r}
+
+t.test(x1,x2, alternative = "greater")
+
+```
+
+# edges in left hemisphere
+```{r}
+
+total_edges<-sapply(LRSumList, function(x){
+  sum(x[1,1])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+# x1 = total_edges[df$genotype==1]
+# x2 = total_edges[df$genotype==2]
+# t.test(x1,x2,alternative = "greater")
+
+
+
+
+```
+
+
+Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
+
+```{r}
+
+
+n1 = sum(df$genotype==1)
+p1 = sum(total_edges[df$genotype==1]) / (n^2/4) /n1
+
+sigma2.x1 = (n^2/4)*p1*(1-p1)
+
+n2 = sum(df$genotype==2)
+p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
+
+sigma2.x2 = (n^2/4)*p2*(1-p2)
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+# t.test(x1,x2,alternative = "greater")
+
+zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
+
+pvalue = 1 - pnorm(zstat)
+
+print("z")
+zstat
+print("one-sided p-value")
+pvalue
+
+```
+
+
+Direct two sample t-test
+
+```{r}
+
+t.test(x1,x2, alternative = "greater")
+
+```
+
+# edges in right hemisphere
+```{r}
+
+total_edges<-sapply(LRSumList, function(x){
+  sum(x[2,2])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+```
+
+
+Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
+
+```{r}
+
+
+n1 = sum(df$genotype==1)
+p1 = sum(total_edges[df$genotype==1]) / (n^2/4) /n1
+
+sigma2.x1 = (n^2/4)*p1*(1-p1)
+
+n2 = sum(df$genotype==2)
+p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
+
+sigma2.x2 = (n^2/4)*p2*(1-p2)
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+# t.test(x1,x2,alternative = "greater")
+
+zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
+
+pvalue = 1 - pnorm(zstat)
+
+print("z")
+zstat
+print("one-sided p-value")
+pvalue
+
+```
+
+Direct two sample t-test
+
+```{r}
+
+t.test(x1,x2, alternative = "greater")
+
+```
+
+# edges across left and right 
+```{r}
+
+total_edges<-sapply(LRSumList, function(x){
+  sum(x[1,2])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+```
+
+
+
+Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
+
+```{r}
+
+
+n1 = sum(df$genotype==1)
+p1 = sum(total_edges[df$genotype==1]) / (n^2/4) /n1
+
+sigma2.x1 = (n^2/4)*p1*(1-p1)
+
+n2 = sum(df$genotype==2)
+p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
+
+sigma2.x2 = (n^2/4)*p2*(1-p2)
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+# t.test(x1,x2,alternative = "greater")
+
+zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
+
+pvalue = 1 - pnorm(zstat)
+
+print("z")
+zstat
+print("one-sided p-value")
+pvalue
+
+```
+
+
+
+Direct two sample t-test
+
+```{r}
+
+t.test(x1,x2, alternative = "greater")
+
+```
