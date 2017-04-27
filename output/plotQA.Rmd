@@ -1,0 +1,219 @@
+---
+title: "Title"
+author: "Author"
+date: '`r Sys.Date()`'
+output:
+  md_document: 
+    variant: markdown_github
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      echo=F, warning=FALSE, message=FALSE)
+```
+
+
+```{r}
+setwd("~/git/subgraph/output/")
+
+require("rjson")
+require("ggplot2")
+
+json_file <- "./output_data_genotype1.json"
+json_data_genotype1 <- fromJSON(file=json_file)
+
+json_file <- "./output_data_genotype2.json"
+json_data_genotype2 <- fromJSON(file=json_file)
+```
+
+#centrality
+```{r}
+
+n = length(json_data_genotype1$degree_distribution$total_deg[[1]])
+
+var1 = json_data_genotype1$betweenness_centrality
+var2 = json_data_genotype2$betweenness_centrality
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( betweenness_centrality  = c(var1,var2), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=betweenness_centrality,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+#log clustering coefficient
+```{r}
+
+n = length(json_data_genotype1$degree_distribution$total_deg[[1]])
+
+var1 = json_data_genotype1$clustering_coefficients
+var2 = json_data_genotype2$clustering_coefficients
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( clustering_coefficients  = log(c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=clustering_coefficients,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+
+#degree
+```{r}
+
+n = length(json_data_genotype1$degree_distribution$total_deg[[1]])
+
+var1 = json_data_genotype1$degree_distribution$total_deg
+var2 = json_data_genotype2$degree_distribution$total_deg
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( total.degree  = c(var1,var2), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=total.degree,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+
+
+#eigenvalue
+
+```{r}
+n = length(json_data_genotype1$eigen_sequence[[1]])
+
+var1 = json_data_genotype1$eigen_sequence
+var2 = json_data_genotype2$eigen_sequence
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( eigenvalue  = c(var1,var2), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=eigenvalue,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+
+#locality
+
+```{r}
+n = length(json_data_genotype1$locality_statistic[[1]])
+
+var1 = json_data_genotype1$locality_statistic
+var2 = json_data_genotype2$locality_statistic
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( locality  = log(c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=locality,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+#edge weight
+
+```{r}
+n = max(sapply(json_data_genotype1$edge_weight,length))
+n = max(n,max(sapply(json_data_genotype2$edge_weight,length)))
+
+var1 = json_data_genotype1$edge_weight
+var2 = json_data_genotype2$edge_weight
+
+var1 = lapply(var1, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+var2 = lapply(var2, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( edge.weight  = log(c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=edge.weight,col=genotype, group=id)) +  geom_line(shape=1)
+```
+
+
+#edge weight
+```{r}
+
+n = max(sapply(json_data_genotype1$edge_weight,length))
+n = max(n,max(sapply(json_data_genotype2$edge_weight,length)))
+
+var1 = json_data_genotype1$edge_weight
+var2 = json_data_genotype2$edge_weight
+
+var1 = lapply(var1, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+var2 = lapply(var2, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( edge.weight  = log(c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(df, aes(x=index, y=edge.weight,col=genotype, group=id)) +  geom_line(shape=1)
+
+```
+
+#number of non-zeros
+
+Note: the smoothed density is not quite good, because the sample size is quite low.
+
+
+```{r}
+n = max(sapply(json_data_genotype1$number_non_zeros,length))
+n = max(n,max(sapply(json_data_genotype2$number_non_zeros,length)))
+
+var1 = json_data_genotype1$number_non_zeros
+var2 = json_data_genotype2$number_non_zeros
+
+var1 = lapply(var1, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+var2 = lapply(var2, function(x){
+  a= rep(NA,n)
+  a[1:length(x)]= sort(x)
+  a
+})
+
+var1 = unlist(var1)
+var2 = unlist(var2)
+
+m = (length(var1)+length(var2))/n #21
+
+df = data.frame( num.non.zero  = (c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
+
+ggplot(data=df, aes(num.non.zero,fill=genotype))+ geom_density(bins = 30,position = "identity",alpha=0.5)
+
+ggplot(data=df, aes(x=id, y=num.non.zero,col=genotype))+ geom_point(alpha=0.5)
+
+```
