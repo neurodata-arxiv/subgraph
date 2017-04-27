@@ -151,36 +151,6 @@ ggplot(df, aes(x=index, y=edge.weight,col=genotype, group=id)) +  geom_line(shap
 ```
 
 
-#edge weight
-```{r}
-
-n = max(sapply(json_data_genotype1$edge_weight,length))
-n = max(n,max(sapply(json_data_genotype2$edge_weight,length)))
-
-var1 = json_data_genotype1$edge_weight
-var2 = json_data_genotype2$edge_weight
-
-var1 = lapply(var1, function(x){
-  a= rep(NA,n)
-  a[1:length(x)]= sort(x)
-  a
-})
-var2 = lapply(var2, function(x){
-  a= rep(NA,n)
-  a[1:length(x)]= sort(x)
-  a
-})
-
-var1 = unlist(var1)
-var2 = unlist(var2)
-
-m = (length(var1)+length(var2))/n #21
-
-df = data.frame( edge.weight  = log(c(var1,var2)), "index"=rep(c(1:n),m),"id"= rep(c(1:m),each=n),"genotype" = as.factor(c(rep(1,length(var1)),rep(2,length(var2)))))
-
-ggplot(df, aes(x=index, y=edge.weight,col=genotype, group=id)) +  geom_line(shape=1)
-
-```
 
 #number of non-zeros
 

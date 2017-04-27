@@ -28,14 +28,9 @@ edge weight
 
 ![](Figs/unnamed-chunk-7-1.png)
 
-edge weight
-===========
-
-![](Figs/unnamed-chunk-8-1.png)
-
 number of non-zeros
 ===================
 
 Note: the smoothed density is not quite good, because the sample size is quite low.
 
-![](Figs/unnamed-chunk-9-1.png)![](Figs/unnamed-chunk-9-2.png)
+![](Figs/unnamed-chunk-8-1.png)![](Figs/unnamed-chunk-8-2.png)
