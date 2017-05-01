@@ -25,148 +25,182 @@ Plotted over two genotypes
 
 ![](Figs/unnamed-chunk-6-1.png)
 
+Plotted over two sex ![](Figs/unnamed-chunk-7-1.png)
+
 Betweenness Centrality Distribution
 ===================================
 
 Plotted over two genotypes
 
-![](Figs/unnamed-chunk-7-1.png)
+![](Figs/unnamed-chunk-8-1.png)
 
-Left and Right
-==============
+Plotted over two sex
 
-Genotype1
+![](Figs/unnamed-chunk-9-1.png)
 
-![](Figs/unnamed-chunk-9-1.png)![](Figs/unnamed-chunk-9-2.png)![](Figs/unnamed-chunk-9-3.png)![](Figs/unnamed-chunk-9-4.png)![](Figs/unnamed-chunk-9-5.png)
-
-Genotype2
-
-![](Figs/unnamed-chunk-10-1.png)![](Figs/unnamed-chunk-10-2.png)![](Figs/unnamed-chunk-10-3.png)![](Figs/unnamed-chunk-10-4.png)![](Figs/unnamed-chunk-10-5.png)![](Figs/unnamed-chunk-10-6.png)
-
-Average
-
-Genotype 1
-
-![](Figs/unnamed-chunk-11-1.png) Genotype 2
-
-![](Figs/unnamed-chunk-12-1.png)
-
-Plot the genotype1(black) vs genotype2(red) in the edge count in each block.
-
-![](Figs/unnamed-chunk-13-1.png)
-
+<!-- Genotype1 -->
+<!-- ```{r} -->
+<!-- par(mfrow=c(1,2)) -->
+<!-- for(i in geno1){ -->
+<!--     img = as.matrix(LRSumList[[i]]) -->
+<!--     image.plot(img,main=i, zlim=c(0,7000)) -->
+<!-- } -->
+<!-- ``` -->
+<!-- Genotype2 -->
+<!-- ```{r} -->
+<!-- par(mfrow=c(1,2)) -->
+<!-- for(i in geno2){ -->
+<!--     img = as.matrix(LRSumList[[i]]) -->
+<!--     image.plot(img,main=i, zlim=c(0,7000)) -->
+<!-- } -->
+<!-- ``` -->
+<!-- Average -->
+<!-- Genotype 1 -->
+<!-- ```{r} -->
+<!-- Asum = matrix(0, 2,2) -->
+<!-- for(i in geno1){ -->
+<!--     Asum = Asum + as.matrix(LRSumList[[i]]) -->
+<!-- } -->
+<!-- avgGeno1 = Asum/length(geno1) -->
+<!-- image.plot(avgGeno1, zlim=c(0,7000)) -->
+<!-- ``` -->
+<!-- Genotype 2 -->
+<!-- ```{r} -->
+<!-- Asum = matrix(0, 2,2) -->
+<!-- for(i in geno2){ -->
+<!--     Asum = Asum + as.matrix(LRSumList[[i]]) -->
+<!-- } -->
+<!-- avgGeno2 = Asum/length(geno2) -->
+<!-- image.plot(avgGeno2, zlim=c(0,7000)) -->
+<!-- ``` -->
 total edges
 ===========
 
-![](Figs/unnamed-chunk-15-1.png)
-
-Use MLE for p\_1 and p\_2 in the two binomial population, plug in n^2\*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
-
-    ## [1] "z"
-
-    ## [1] 75.53237
-
-    ## [1] "one-sided p-value"
-
-    ## [1] 0
-
-Direct two sample t-test
+Over genotype ![](Figs/unnamed-chunk-14-1.png)
 
     ## 
-    ##  Welch Two Sample t-test
+    ##  Wilcoxon rank sum test
     ## 
     ## data:  x1 and x2
-    ## t = 1.3112, df = 16.988, p-value = 0.1036
-    ## alternative hypothesis: true difference in means is greater than 0
-    ## 95 percent confidence interval:
-    ##  -631.6654       Inf
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  16555.11  14622.00
+    ## W = 76, p-value = 0.06427
+    ## alternative hypothesis: true location shift is greater than 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 2.4444, df = 1, p-value = 0.1179
+
+Over sex ![](Figs/unnamed-chunk-15-1.png)
+
+    ## 
+    ##  Wilcoxon rank sum test
+    ## 
+    ## data:  x1 and x2
+    ## W = 58, p-value = 0.8633
+    ## alternative hypothesis: true location shift is not equal to 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$sex)
+    ## Kruskal-Wallis chi-squared = 0.044628, df = 1, p-value = 0.8327
 
 edges in left hemisphere
 ========================
 
-![](Figs/unnamed-chunk-18-1.png)
-
-Use MLE for p\_1 and p\_2 in the two binomial population, plug in n^2/4\*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
-
-    ## [1] "z"
-
-    ## [1] 11.77203
-
-    ## [1] "one-sided p-value"
-
-    ## [1] 0
-
-Direct two sample t-test
+Over genotype ![](Figs/unnamed-chunk-17-1.png)
 
     ## 
-    ##  Welch Two Sample t-test
+    ##  Wilcoxon rank sum test
     ## 
     ## data:  x1 and x2
-    ## t = 0.70148, df = 16.908, p-value = 0.2463
-    ## alternative hypothesis: true difference in means is greater than 0
-    ## 95 percent confidence interval:
-    ##  -479.5726       Inf
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  4832.222  4508.333
+    ## W = 61, p-value = 0.3255
+    ## alternative hypothesis: true location shift is greater than 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 0.24747, df = 1, p-value = 0.6189
+
+Over sex ![](Figs/unnamed-chunk-18-1.png)
+
+    ## 
+    ##  Wilcoxon rank sum test
+    ## 
+    ## data:  x1 and x2
+    ## W = 52, p-value = 0.8633
+    ## alternative hypothesis: true location shift is not equal to 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$sex)
+    ## Kruskal-Wallis chi-squared = 0.044628, df = 1, p-value = 0.8327
 
 edges in right hemisphere
 =========================
 
-![](Figs/unnamed-chunk-21-1.png)
-
-Use MLE for p\_1 and p\_2 in the two binomial population, plug in n^2/4\*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
-
-    ## [1] "z"
-
-    ## [1] 15.56627
-
-    ## [1] "one-sided p-value"
-
-    ## [1] 0
-
-Direct two sample t-test
+Over genotype ![](Figs/unnamed-chunk-21-1.png)
 
     ## 
-    ##  Welch Two Sample t-test
+    ##  Wilcoxon rank sum test
     ## 
     ## data:  x1 and x2
-    ## t = 0.92757, df = 16.679, p-value = 0.1834
-    ## alternative hypothesis: true difference in means is greater than 0
-    ## 95 percent confidence interval:
-    ##  -389.2759       Inf
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  5325.778  4882.167
+    ## W = 64, p-value = 0.2539
+    ## alternative hypothesis: true location shift is greater than 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 0.50505, df = 1, p-value = 0.4773
+
+Over sex ![](Figs/unnamed-chunk-22-1.png)
+
+    ## 
+    ##  Wilcoxon rank sum test
+    ## 
+    ## data:  x1 and x2
+    ## W = 56, p-value = 0.9725
+    ## alternative hypothesis: true location shift is not equal to 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$sex)
+    ## Kruskal-Wallis chi-squared = 0.0049587, df = 1, p-value = 0.9439
 
 edges across left and right
 ===========================
 
-![](Figs/unnamed-chunk-24-1.png)
-
-Use MLE for p\_1 and p\_2 in the two binomial population, plug in n^2/4\*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
-
-    ## [1] "z"
-
-    ## [1] 25.77095
-
-    ## [1] "one-sided p-value"
-
-    ## [1] 0
-
-Direct two sample t-test
+Over genotype ![](Figs/unnamed-chunk-25-1.png)
 
     ## 
-    ##  Welch Two Sample t-test
+    ##  Wilcoxon rank sum test
     ## 
     ## data:  x1 and x2
-    ## t = 1.8438, df = 17.62, p-value = 0.04105
-    ## alternative hypothesis: true difference in means is greater than 0
-    ## 95 percent confidence interval:
-    ##  34.04205      Inf
-    ## sample estimates:
-    ## mean of x mean of y 
-    ##  3198.556  2615.750
+    ## W = 81, p-value = 0.02924
+    ## alternative hypothesis: true location shift is greater than 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 3.6818, df = 1, p-value = 0.05501
+
+Over sex ![](Figs/unnamed-chunk-26-1.png)
+
+    ## 
+    ##  Wilcoxon rank sum test
+    ## 
+    ## data:  x1 and x2
+    ## W = 61, p-value = 0.7045
+    ## alternative hypothesis: true location shift is not equal to 0
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$sex)
+    ## Kruskal-Wallis chi-squared = 0.17851, df = 1, p-value = 0.6727

@@ -73,6 +73,8 @@ for(i in 1:length(AdjacencyList)){
 
 GENOTYPEPick = covariates$GENOTYPE[covariates$GENOTYPE>=1]
 
+SEXPick = covariates$GENDER[covariates$GENOTYPE>=1]
+
 m = length(GENOTYPEPick)
 ```
 
@@ -161,9 +163,15 @@ DegreeListPick = DegreeListMat[,covariates$GENOTYPE>=1]
 
 
 
-df = data.frame("degree"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)))
+df = data.frame("degree"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)),"sex"=as.factor(rep(SEXPick,each=n)))
 
 ggplot(data=df, aes(degree,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~genotype)
+
+```
+
+Plotted over two sex
+```{r}
+ggplot(data=df, aes(degree,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~sex)
 
 ```
 
@@ -183,16 +191,20 @@ DegreeListMat = do.call("cbind", DegreeList)
 
 DegreeListPick = DegreeListMat[,covariates$GENOTYPE>=1]
 
-df = data.frame("betweenness"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)))
+df = data.frame("betweenness"= c(DegreeListPick), "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)),"sex"=as.factor(rep(SEXPick,each=n)))
 
 ggplot(data=df, aes(betweenness,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~genotype)
 
 ```
 
 
+Plotted over two sex
 
+```{r}
+ggplot(data=df, aes(betweenness,fill=id))+ geom_histogram(bins = 30,position = "identity",alpha=0.5)+ theme_bw()+facet_grid(~sex)
 
-#Left and Right
+```
+
 
 ```{r}
 
@@ -212,73 +224,65 @@ LRSumList = lapply( AdjacencyListPick, function(x){
 ```
 
 
-Genotype1
+<!-- Genotype1 -->
 
-```{r}
-par(mfrow=c(1,2))
-for(i in geno1){
-    img = as.matrix(LRSumList[[i]])
-    image.plot(img,main=i, zlim=c(0,7000))
-}
+<!-- ```{r} -->
+<!-- par(mfrow=c(1,2)) -->
+<!-- for(i in geno1){ -->
+<!--     img = as.matrix(LRSumList[[i]]) -->
+<!--     image.plot(img,main=i, zlim=c(0,7000)) -->
+<!-- } -->
 
-```
-
-
-Genotype2
-
-```{r}
-par(mfrow=c(1,2))
-for(i in geno2){
-    img = as.matrix(LRSumList[[i]])
-    image.plot(img,main=i, zlim=c(0,7000))
-}
-
-```
+<!-- ``` -->
 
 
+<!-- Genotype2 -->
 
-Average
+<!-- ```{r} -->
+<!-- par(mfrow=c(1,2)) -->
+<!-- for(i in geno2){ -->
+<!--     img = as.matrix(LRSumList[[i]]) -->
+<!--     image.plot(img,main=i, zlim=c(0,7000)) -->
+<!-- } -->
 
-Genotype 1
-
-```{r}
-
-Asum = matrix(0, 2,2)
-for(i in geno1){
-    Asum = Asum + as.matrix(LRSumList[[i]])
-}
-
-avgGeno1 = Asum/length(geno1)
-
-image.plot(avgGeno1, zlim=c(0,7000))
-
-```
-Genotype 2
-
-```{r}
+<!-- ``` -->
 
 
 
-Asum = matrix(0, 2,2)
-for(i in geno2){
-    Asum = Asum + as.matrix(LRSumList[[i]])
-}
+<!-- Average -->
 
-avgGeno2 = Asum/length(geno2)
+<!-- Genotype 1 -->
 
-image.plot(avgGeno2, zlim=c(0,7000))
+<!-- ```{r} -->
 
-```
+<!-- Asum = matrix(0, 2,2) -->
+<!-- for(i in geno1){ -->
+<!--     Asum = Asum + as.matrix(LRSumList[[i]]) -->
+<!-- } -->
+
+<!-- avgGeno1 = Asum/length(geno1) -->
+
+<!-- image.plot(avgGeno1, zlim=c(0,7000)) -->
+
+<!-- ``` -->
+<!-- Genotype 2 -->
+
+<!-- ```{r} -->
 
 
-Plot the genotype1(black) vs genotype2(red) in the edge count in each block.
 
-```{r}
+<!-- Asum = matrix(0, 2,2) -->
+<!-- for(i in geno2){ -->
+<!--     Asum = Asum + as.matrix(LRSumList[[i]]) -->
+<!-- } -->
 
-plot(c(avgGeno1),ylim=c(0,6000))
-lines(c(avgGeno2),col="red",type="p")
+<!-- avgGeno2 = Asum/length(geno2) -->
 
-```
+<!-- image.plot(avgGeno2, zlim=c(0,7000)) -->
+
+<!-- ``` -->
+
+
 
 ```{r}
 z.test2sam = function(a, b, var.a, var.b){
@@ -298,16 +302,11 @@ total_edges<-sapply(LRSumList, function(x){
 })
 
 
-df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
-
-ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
 
 
 ```
 
-
-
-Use MLE for p_1 and p_2 in the two binomial population, plug in n^2*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
 
 ```{r}
 
@@ -322,28 +321,38 @@ p2 = sum(total_edges[df$genotype==2]) / (n^2) /n2
 
 sigma2.x2 = (n^2/4)*p2*(1-p2)
 
-x1 = total_edges[df$genotype==1]
-x2 = total_edges[df$genotype==2]
-
-# t.test(x1,x2,alternative = "greater")
-
-zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
-
-pvalue = 1 - pnorm(zstat)
-
-print("z")
-zstat
-print("one-sided p-value")
-pvalue
 
 ```
 
 
-Direct two sample t-test
 
+Over genotype 
 ```{r}
 
-t.test(x1,x2, alternative = "greater")
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+
+```
+
+
+Over sex 
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$sex))
 
 ```
 
@@ -355,12 +364,9 @@ total_edges<-sapply(LRSumList, function(x){
 })
 
 
-df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
 
-ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
 
-# x1 = total_edges[df$genotype==1]
-# x2 = total_edges[df$genotype==2]
 # t.test(x1,x2,alternative = "greater")
 
 
@@ -369,43 +375,32 @@ ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_poin
 ```
 
 
-Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
-
+Over genotype 
 ```{r}
 
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
 
-n1 = sum(df$genotype==1)
-p1 = sum(total_edges[df$genotype==1]) / (n^2/4) /n1
-
-sigma2.x1 = (n^2/4)*p1*(1-p1)
-
-n2 = sum(df$genotype==2)
-p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
-
-sigma2.x2 = (n^2/4)*p2*(1-p2)
 
 x1 = total_edges[df$genotype==1]
 x2 = total_edges[df$genotype==2]
 
-# t.test(x1,x2,alternative = "greater")
-
-zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
-
-pvalue = 1 - pnorm(zstat)
-
-print("z")
-zstat
-print("one-sided p-value")
-pvalue
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df$total_edges~as.factor(df$genotype))
 
 ```
 
 
-Direct two sample t-test
-
+Over sex 
 ```{r}
 
-t.test(x1,x2, alternative = "greater")
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$sex))
 
 ```
 
@@ -417,14 +412,11 @@ total_edges<-sapply(LRSumList, function(x){
 })
 
 
-df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
 
-ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
 
 ```
 
-
-Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
 
 ```{r}
 
@@ -439,27 +431,37 @@ p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
 
 sigma2.x2 = (n^2/4)*p2*(1-p2)
 
-x1 = total_edges[df$genotype==1]
-x2 = total_edges[df$genotype==2]
 
-# t.test(x1,x2,alternative = "greater")
-
-zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
-
-pvalue = 1 - pnorm(zstat)
-
-print("z")
-zstat
-print("one-sided p-value")
-pvalue
 
 ```
 
-Direct two sample t-test
 
+Over genotype 
 ```{r}
 
-t.test(x1,x2, alternative = "greater")
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+
+Over sex 
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$sex))
 
 ```
 
@@ -471,15 +473,10 @@ total_edges<-sapply(LRSumList, function(x){
 })
 
 
-df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)))
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
 
-ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
 
 ```
-
-
-
-Use MLE for p_1 and p_2 in the two binomial population, plug in n^2/4*p(1-p) as the two population variance, compute variance, do z-test (as CLT approximation for Binomial)
 
 ```{r}
 
@@ -494,28 +491,38 @@ p2 = sum(total_edges[df$genotype==2]) / (n^2/4) /n2
 
 sigma2.x2 = (n^2/4)*p2*(1-p2)
 
-x1 = total_edges[df$genotype==1]
-x2 = total_edges[df$genotype==2]
-
-# t.test(x1,x2,alternative = "greater")
-
-zstat = z.test2sam(x1,x2, sigma2.x1,sigma2.x2)
-
-pvalue = 1 - pnorm(zstat)
-
-print("z")
-zstat
-print("one-sided p-value")
-pvalue
 
 ```
 
 
 
-Direct two sample t-test
-
+Over genotype 
 ```{r}
 
-t.test(x1,x2, alternative = "greater")
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+
+Over sex 
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+
+kruskal.test(df$total_edges~as.factor(df$sex))
 
 ```
