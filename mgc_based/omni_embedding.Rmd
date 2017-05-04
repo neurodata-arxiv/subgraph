@@ -287,7 +287,7 @@ for(i in 1:tot_i){
   
 #   plot.new()
   print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=genotype, group=id)) +
-          geom_point(aes(x=genotype.m.x1, y=genotype.m.x2,shape=genotype),alpha=0.5) +
+          # geom_point(aes(x=genotype.m.x1, y=genotype.m.x2,shape=genotype),alpha=0.5) +
                     geom_line(aes(x=x1, y=decisionX2genotype), linetype=2) +
          facet_wrap(~vertex, ncol=5,scales="free"))
 
@@ -318,7 +318,7 @@ for(i in 1:tot_i){
 
 #   plot.new()
   print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=sex, group=id)) +
-          geom_point(aes(x=sex.m.x1, y=sex.m.x2,shape=sex),alpha=0.5) +
+          # geom_point(aes(x=sex.m.x1, y=sex.m.x2,shape=sex),alpha=0.5) +
           geom_line(aes(x=x1, y=decisionX2sex), linetype=2)+
           facet_wrap(~vertex, ncol=5,scales="free"))
 
