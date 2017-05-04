@@ -176,5 +176,83 @@ ggplot(df, aes(x=x1, y=x2,col=sex, group=id)) +  geom_point()
 
 ```
 
+#scatterplot for each vertex
+
+```{r}
+
+Xhat = Xhat.out$Xhat
+df0 = data.frame( "x1"=Xhat[,1] ,"x2"=Xhat[,2], "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)),"sex"=as.factor(rep(SEXPick,each=n)), "vertex"= (rep(c(1:n),m)))
+
+df0$genotype.m.x1 = 0
+df0$genotype.m.x2 = 0
+df0$sex.m.x1 = 0
+df0$sex.m.x2 = 0
+
+for(i in 1:n){
+  for(j in 1:2){
+    pick = (df0$vertex==i) & (df0$genotype==j)
+    df0$genotype.m.x1[pick] = median(df0$x1[pick])
+    df0$genotype.m.x2[pick] = median(df0$x2[pick])
+    
+    pick = (df0$vertex==i) & (df0$sex==j)
+    df0$sex.m.x1[pick] = median(df0$x1[pick])
+    df0$sex.m.x2[pick] = median(df0$x2[pick])
+  }
+}
+tot_i = ceiling(n/10)
+
+```
+
+#Over genotype
+
+```{r}
+ 
+for(i in 1:tot_i){
+
+  start_i = (i-1)*10+1
+  end_i = min(i*10,n)
+
+pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+
+  # pick = df0$vertex <= 10 
+  df = df0[pick,]
+# 
+  
+#   plot.new()
+  print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=genotype, group=id)) +
+          geom_point(aes(x=genotype.m.x1, y=genotype.m.x2,shape=genotype),alpha=0.5) 
+        + facet_wrap(~vertex, ncol=5,scales="free"))
+
+}
+
+
+```
+
+
+#Over sex
+
+```{r}
+ 
+for(i in 1:tot_i){
+
+  start_i = (i-1)*10+1
+  end_i = min(i*10,n)
+
+pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+
+  # pick = df0$vertex <= 10 
+  df = df0[pick,]
+# 
+  
+
+#   plot.new()
+  print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=sex, group=id)) +
+          geom_point(aes(x=sex.m.x1, y=sex.m.x2,shape=sex),alpha=0.5) 
+        + facet_wrap(~vertex, ncol=5,scales="free"))
+
+}
+
+
+```
 
 
