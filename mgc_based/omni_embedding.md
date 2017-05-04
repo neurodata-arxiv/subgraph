@@ -223,16 +223,60 @@ for(i in 1:n){
 tot_i = ceiling(n/10)
 ```
 
+Compute LDA for each vertex
+
+``` r
+require("MASS")
+```
+
+    ## Loading required package: MASS
+
+``` r
+X= cbind(df0$x1,df0$x2)
+
+
+
+lda_error = sapply( c(1:n), function(i){
+
+    pick = df0$vertex==i
+    
+    geno_fit = lda(X[pick,], df$genotype[pick])
+    geno_error = sum(predict(geno_fit)$class != df$genotype[pick]) / sum(pick)
+    
+    sex_fit = lda(X[pick,], df$sex[pick])
+    sex_error = sum(predict(sex_fit)$class != df$sex[pick]) / sum(pick)
+    
+    c(geno_error,sex_error)
+    
+})
+
+lda_error = t(lda_error)
+
+
+lda_vertex= data.frame("vertex" = c(1:n), "genotype_error" = lda_error[,1], "sex_error" = lda_error[,2])
+
+
+# genotype.lda.rank = rank(lda_vertex$genotype_error, ties.method = "first")
+# sex.lda.rank = rank(lda_vertex$sex_error, ties.method = "first")
+# df0$genotype.lda.rank = rep(genotype.lda.rank, m)
+# df0$sex.lda.rank = rep(sex.lda.rank, m)
+```
+
 Over genotype
 =============
 
 ``` r
+df0$vertex = factor(df0$vertex, levels=order(lda_vertex$genotype_error))
+
+
 for(i in 1:tot_i){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
+  
+  
 
-pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+  pick = df0$vertex %in% order(lda_vertex$genotype_error)[start_i:end_i]
 
   # pick = df0$vertex <= 10 
   df = df0[pick,]
@@ -246,18 +290,21 @@ pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
 }
 ```
 
-![](Figs/unnamed-chunk-9-1.png)![](Figs/unnamed-chunk-9-2.png)![](Figs/unnamed-chunk-9-3.png)![](Figs/unnamed-chunk-9-4.png)![](Figs/unnamed-chunk-9-5.png)![](Figs/unnamed-chunk-9-6.png)![](Figs/unnamed-chunk-9-7.png)![](Figs/unnamed-chunk-9-8.png)![](Figs/unnamed-chunk-9-9.png)![](Figs/unnamed-chunk-9-10.png)![](Figs/unnamed-chunk-9-11.png)![](Figs/unnamed-chunk-9-12.png)![](Figs/unnamed-chunk-9-13.png)![](Figs/unnamed-chunk-9-14.png)![](Figs/unnamed-chunk-9-15.png)![](Figs/unnamed-chunk-9-16.png)![](Figs/unnamed-chunk-9-17.png)![](Figs/unnamed-chunk-9-18.png)![](Figs/unnamed-chunk-9-19.png)![](Figs/unnamed-chunk-9-20.png)![](Figs/unnamed-chunk-9-21.png)![](Figs/unnamed-chunk-9-22.png)![](Figs/unnamed-chunk-9-23.png)![](Figs/unnamed-chunk-9-24.png)![](Figs/unnamed-chunk-9-25.png)![](Figs/unnamed-chunk-9-26.png)![](Figs/unnamed-chunk-9-27.png)![](Figs/unnamed-chunk-9-28.png)![](Figs/unnamed-chunk-9-29.png)![](Figs/unnamed-chunk-9-30.png)![](Figs/unnamed-chunk-9-31.png)![](Figs/unnamed-chunk-9-32.png)![](Figs/unnamed-chunk-9-33.png)![](Figs/unnamed-chunk-9-34.png)
+![](Figs/unnamed-chunk-10-1.png)![](Figs/unnamed-chunk-10-2.png)![](Figs/unnamed-chunk-10-3.png)![](Figs/unnamed-chunk-10-4.png)![](Figs/unnamed-chunk-10-5.png)![](Figs/unnamed-chunk-10-6.png)![](Figs/unnamed-chunk-10-7.png)![](Figs/unnamed-chunk-10-8.png)![](Figs/unnamed-chunk-10-9.png)![](Figs/unnamed-chunk-10-10.png)![](Figs/unnamed-chunk-10-11.png)![](Figs/unnamed-chunk-10-12.png)![](Figs/unnamed-chunk-10-13.png)![](Figs/unnamed-chunk-10-14.png)![](Figs/unnamed-chunk-10-15.png)![](Figs/unnamed-chunk-10-16.png)![](Figs/unnamed-chunk-10-17.png)![](Figs/unnamed-chunk-10-18.png)![](Figs/unnamed-chunk-10-19.png)![](Figs/unnamed-chunk-10-20.png)![](Figs/unnamed-chunk-10-21.png)![](Figs/unnamed-chunk-10-22.png)![](Figs/unnamed-chunk-10-23.png)![](Figs/unnamed-chunk-10-24.png)![](Figs/unnamed-chunk-10-25.png)![](Figs/unnamed-chunk-10-26.png)![](Figs/unnamed-chunk-10-27.png)![](Figs/unnamed-chunk-10-28.png)![](Figs/unnamed-chunk-10-29.png)![](Figs/unnamed-chunk-10-30.png)![](Figs/unnamed-chunk-10-31.png)![](Figs/unnamed-chunk-10-32.png)![](Figs/unnamed-chunk-10-33.png)![](Figs/unnamed-chunk-10-34.png)
 
 Over sex
 ========
 
 ``` r
+df0$vertex = factor(df0$vertex, levels=order(lda_vertex$sex_error))
+
+ 
 for(i in 1:tot_i){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
 
-pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+  pick = df0$vertex %in% order(lda_vertex$sex_error)[start_i:end_i]
 
   # pick = df0$vertex <= 10 
   df = df0[pick,]
@@ -272,4 +319,4 @@ pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
 }
 ```
 
-![](Figs/unnamed-chunk-10-1.png)![](Figs/unnamed-chunk-10-2.png)![](Figs/unnamed-chunk-10-3.png)![](Figs/unnamed-chunk-10-4.png)![](Figs/unnamed-chunk-10-5.png)![](Figs/unnamed-chunk-10-6.png)![](Figs/unnamed-chunk-10-7.png)![](Figs/unnamed-chunk-10-8.png)![](Figs/unnamed-chunk-10-9.png)![](Figs/unnamed-chunk-10-10.png)![](Figs/unnamed-chunk-10-11.png)![](Figs/unnamed-chunk-10-12.png)![](Figs/unnamed-chunk-10-13.png)![](Figs/unnamed-chunk-10-14.png)![](Figs/unnamed-chunk-10-15.png)![](Figs/unnamed-chunk-10-16.png)![](Figs/unnamed-chunk-10-17.png)![](Figs/unnamed-chunk-10-18.png)![](Figs/unnamed-chunk-10-19.png)![](Figs/unnamed-chunk-10-20.png)![](Figs/unnamed-chunk-10-21.png)![](Figs/unnamed-chunk-10-22.png)![](Figs/unnamed-chunk-10-23.png)![](Figs/unnamed-chunk-10-24.png)![](Figs/unnamed-chunk-10-25.png)![](Figs/unnamed-chunk-10-26.png)![](Figs/unnamed-chunk-10-27.png)![](Figs/unnamed-chunk-10-28.png)![](Figs/unnamed-chunk-10-29.png)![](Figs/unnamed-chunk-10-30.png)![](Figs/unnamed-chunk-10-31.png)![](Figs/unnamed-chunk-10-32.png)![](Figs/unnamed-chunk-10-33.png)![](Figs/unnamed-chunk-10-34.png)
+![](Figs/unnamed-chunk-11-1.png)![](Figs/unnamed-chunk-11-2.png)![](Figs/unnamed-chunk-11-3.png)![](Figs/unnamed-chunk-11-4.png)![](Figs/unnamed-chunk-11-5.png)![](Figs/unnamed-chunk-11-6.png)![](Figs/unnamed-chunk-11-7.png)![](Figs/unnamed-chunk-11-8.png)![](Figs/unnamed-chunk-11-9.png)![](Figs/unnamed-chunk-11-10.png)![](Figs/unnamed-chunk-11-11.png)![](Figs/unnamed-chunk-11-12.png)![](Figs/unnamed-chunk-11-13.png)![](Figs/unnamed-chunk-11-14.png)![](Figs/unnamed-chunk-11-15.png)![](Figs/unnamed-chunk-11-16.png)![](Figs/unnamed-chunk-11-17.png)![](Figs/unnamed-chunk-11-18.png)![](Figs/unnamed-chunk-11-19.png)![](Figs/unnamed-chunk-11-20.png)![](Figs/unnamed-chunk-11-21.png)![](Figs/unnamed-chunk-11-22.png)![](Figs/unnamed-chunk-11-23.png)![](Figs/unnamed-chunk-11-24.png)![](Figs/unnamed-chunk-11-25.png)![](Figs/unnamed-chunk-11-26.png)![](Figs/unnamed-chunk-11-27.png)![](Figs/unnamed-chunk-11-28.png)![](Figs/unnamed-chunk-11-29.png)![](Figs/unnamed-chunk-11-30.png)![](Figs/unnamed-chunk-11-31.png)![](Figs/unnamed-chunk-11-32.png)![](Figs/unnamed-chunk-11-33.png)![](Figs/unnamed-chunk-11-34.png)

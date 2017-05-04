@@ -203,16 +203,60 @@ tot_i = ceiling(n/10)
 
 ```
 
+
+Compute LDA for each vertex
+```{r}
+
+require("MASS")
+
+X= cbind(df0$x1,df0$x2)
+
+
+
+lda_error = sapply( c(1:n), function(i){
+
+    pick = df0$vertex==i
+    
+    geno_fit = lda(X[pick,], df$genotype[pick])
+    geno_error = sum(predict(geno_fit)$class != df$genotype[pick]) / sum(pick)
+    
+    sex_fit = lda(X[pick,], df$sex[pick])
+    sex_error = sum(predict(sex_fit)$class != df$sex[pick]) / sum(pick)
+    
+    c(geno_error,sex_error)
+    
+})
+
+lda_error = t(lda_error)
+
+
+lda_vertex= data.frame("vertex" = c(1:n), "genotype_error" = lda_error[,1], "sex_error" = lda_error[,2])
+
+
+# genotype.lda.rank = rank(lda_vertex$genotype_error, ties.method = "first")
+# sex.lda.rank = rank(lda_vertex$sex_error, ties.method = "first")
+# df0$genotype.lda.rank = rep(genotype.lda.rank, m)
+# df0$sex.lda.rank = rep(sex.lda.rank, m)
+
+
+```
+
 #Over genotype
 
 ```{r}
  
+
+df0$vertex = factor(df0$vertex, levels=order(lda_vertex$genotype_error))
+
+
 for(i in 1:tot_i){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
+  
+  
 
-pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+  pick = df0$vertex %in% order(lda_vertex$genotype_error)[start_i:end_i]
 
   # pick = df0$vertex <= 10 
   df = df0[pick,]
@@ -232,13 +276,16 @@ pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
 #Over sex
 
 ```{r}
+
+df0$vertex = factor(df0$vertex, levels=order(lda_vertex$sex_error))
+
  
 for(i in 1:tot_i){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
 
-pick = (df0$vertex >= start_i) & (df0$vertex <= end_i)
+  pick = df0$vertex %in% order(lda_vertex$sex_error)[start_i:end_i]
 
   # pick = df0$vertex <= 10 
   df = df0[pick,]
