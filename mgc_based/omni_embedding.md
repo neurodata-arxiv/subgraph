@@ -232,25 +232,45 @@ require("MASS")
     ## Loading required package: MASS
 
 ``` r
+getDecisionBoundary<- function(fit, x1){
+  mu1 = fit$means[1,]
+  mu2 = fit$means[2,]
+  sigma = 1/fit$scaling^2
+  p1 = fit$prior[1]
+  p2 = fit$prior[2]
+  a0 = log(p1/p2) - 0.5* sum((mu1+mu2)*(mu1-mu2)/sigma)
+  a12 = (mu1-mu2)/sigma
+  decisionY = (-a0 - a12[1]* X[pick,1])/a12[2]
+  decisionY
+}
+
+
 X= cbind(df0$x1,df0$x2)
 
 
+df0$decisionX2genotype = 0
+df0$decisionX2sex = 0
 
-lda_error = sapply( c(1:n), function(i){
+
+lda_error = matrix(0, n, 2)
+  
+for(i in 1:n){
 
     pick = df0$vertex==i
     
     geno_fit = lda(X[pick,], df$genotype[pick])
     geno_error = sum(predict(geno_fit)$class != df$genotype[pick]) / sum(pick)
     
+    df0$decisionX2genotype[pick] = getDecisionBoundary(geno_fit, df0$x1[pick])
+    
     sex_fit = lda(X[pick,], df$sex[pick])
     sex_error = sum(predict(sex_fit)$class != df$sex[pick]) / sum(pick)
     
-    c(geno_error,sex_error)
-    
-})
+    df0$decisionX2sex[pick] = getDecisionBoundary(sex_fit, df0$x1[pick])
 
-lda_error = t(lda_error)
+    lda_error[i,] = c(geno_error,sex_error)
+    
+}
 
 
 lda_vertex= data.frame("vertex" = c(1:n), "genotype_error" = lda_error[,1], "sex_error" = lda_error[,2])
@@ -284,8 +304,9 @@ for(i in 1:tot_i){
   
 #   plot.new()
   print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=genotype, group=id)) +
-          geom_point(aes(x=genotype.m.x1, y=genotype.m.x2,shape=genotype),alpha=0.5) 
-        + facet_wrap(~vertex, ncol=5,scales="free"))
+          geom_point(aes(x=genotype.m.x1, y=genotype.m.x2,shape=genotype),alpha=0.5) +
+                    geom_line(aes(x=x1, y=decisionX2genotype), linetype=2) +
+         facet_wrap(~vertex, ncol=5,scales="free"))
 
 }
 ```
@@ -313,8 +334,9 @@ for(i in 1:tot_i){
 
 #   plot.new()
   print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=sex, group=id)) +
-          geom_point(aes(x=sex.m.x1, y=sex.m.x2,shape=sex),alpha=0.5) 
-        + facet_wrap(~vertex, ncol=5,scales="free"))
+          geom_point(aes(x=sex.m.x1, y=sex.m.x2,shape=sex),alpha=0.5) +
+          geom_line(aes(x=x1, y=decisionX2sex), linetype=2)+
+          facet_wrap(~vertex, ncol=5,scales="free"))
 
 }
 ```
