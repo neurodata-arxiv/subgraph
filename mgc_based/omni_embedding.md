@@ -187,7 +187,7 @@ Scatterplot, colored by genotype
 ggplot(df, aes(x=x1, y=x2,col=genotype, group=id)) +  geom_point()
 ```
 
-![](Figs/unnamed-chunk-6-1.png)
+![](FigsOmni/unnamed-chunk-6-1.png)
 
 Scatterplot, colored by sex
 
@@ -195,7 +195,7 @@ Scatterplot, colored by sex
 ggplot(df, aes(x=x1, y=x2,col=sex, group=id)) +  geom_point()
 ```
 
-![](Figs/unnamed-chunk-7-1.png)
+![](FigsOmni/unnamed-chunk-7-1.png)
 
 scatterplot for each vertex
 ===========================
@@ -289,7 +289,7 @@ Over genotype
 df0$vertex = factor(df0$vertex, levels=order(lda_vertex$genotype_error))
 
 
-for(i in 1:tot_i){
+for(i in 1:1){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
@@ -311,7 +311,7 @@ for(i in 1:tot_i){
 }
 ```
 
-![](Figs/unnamed-chunk-10-1.png)![](Figs/unnamed-chunk-10-2.png)![](Figs/unnamed-chunk-10-3.png)![](Figs/unnamed-chunk-10-4.png)![](Figs/unnamed-chunk-10-5.png)![](Figs/unnamed-chunk-10-6.png)![](Figs/unnamed-chunk-10-7.png)![](Figs/unnamed-chunk-10-8.png)![](Figs/unnamed-chunk-10-9.png)![](Figs/unnamed-chunk-10-10.png)![](Figs/unnamed-chunk-10-11.png)![](Figs/unnamed-chunk-10-12.png)![](Figs/unnamed-chunk-10-13.png)![](Figs/unnamed-chunk-10-14.png)![](Figs/unnamed-chunk-10-15.png)![](Figs/unnamed-chunk-10-16.png)![](Figs/unnamed-chunk-10-17.png)![](Figs/unnamed-chunk-10-18.png)![](Figs/unnamed-chunk-10-19.png)![](Figs/unnamed-chunk-10-20.png)![](Figs/unnamed-chunk-10-21.png)![](Figs/unnamed-chunk-10-22.png)![](Figs/unnamed-chunk-10-23.png)![](Figs/unnamed-chunk-10-24.png)![](Figs/unnamed-chunk-10-25.png)![](Figs/unnamed-chunk-10-26.png)![](Figs/unnamed-chunk-10-27.png)![](Figs/unnamed-chunk-10-28.png)![](Figs/unnamed-chunk-10-29.png)![](Figs/unnamed-chunk-10-30.png)![](Figs/unnamed-chunk-10-31.png)![](Figs/unnamed-chunk-10-32.png)![](Figs/unnamed-chunk-10-33.png)![](Figs/unnamed-chunk-10-34.png)
+![](FigsOmni/unnamed-chunk-10-1.png)
 
 Over sex
 ========
@@ -320,7 +320,7 @@ Over sex
 df0$vertex = factor(df0$vertex, levels=order(lda_vertex$sex_error))
 
  
-for(i in 1:tot_i){
+for(i in 1:1){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
@@ -341,4 +341,131 @@ for(i in 1:tot_i){
 }
 ```
 
-![](Figs/unnamed-chunk-11-1.png)![](Figs/unnamed-chunk-11-2.png)![](Figs/unnamed-chunk-11-3.png)![](Figs/unnamed-chunk-11-4.png)![](Figs/unnamed-chunk-11-5.png)![](Figs/unnamed-chunk-11-6.png)![](Figs/unnamed-chunk-11-7.png)![](Figs/unnamed-chunk-11-8.png)![](Figs/unnamed-chunk-11-9.png)![](Figs/unnamed-chunk-11-10.png)![](Figs/unnamed-chunk-11-11.png)![](Figs/unnamed-chunk-11-12.png)![](Figs/unnamed-chunk-11-13.png)![](Figs/unnamed-chunk-11-14.png)![](Figs/unnamed-chunk-11-15.png)![](Figs/unnamed-chunk-11-16.png)![](Figs/unnamed-chunk-11-17.png)![](Figs/unnamed-chunk-11-18.png)![](Figs/unnamed-chunk-11-19.png)![](Figs/unnamed-chunk-11-20.png)![](Figs/unnamed-chunk-11-21.png)![](Figs/unnamed-chunk-11-22.png)![](Figs/unnamed-chunk-11-23.png)![](Figs/unnamed-chunk-11-24.png)![](Figs/unnamed-chunk-11-25.png)![](Figs/unnamed-chunk-11-26.png)![](Figs/unnamed-chunk-11-27.png)![](Figs/unnamed-chunk-11-28.png)![](Figs/unnamed-chunk-11-29.png)![](Figs/unnamed-chunk-11-30.png)![](Figs/unnamed-chunk-11-31.png)![](Figs/unnamed-chunk-11-32.png)![](Figs/unnamed-chunk-11-33.png)![](Figs/unnamed-chunk-11-34.png)
+![](FigsOmni/unnamed-chunk-11-1.png)
+
+T-matrix
+========
+
+``` r
+D<- sapply(c(1:m), function(i){
+  c( df0$x1[df0$id == i], df0$x2[df0$id == i])
+})
+  
+D1 = t(D)
+T= matrix(0,m,m)
+
+for(i in 1:m){
+  for(j in 1:i){
+    T[i,j] = norm(D1[i,]-D1[j,])  
+    T[j,i] = T[i,j]
+  }
+}
+```
+
+Grouped by genotype
+
+``` r
+require(reshape)
+```
+
+    ## Loading required package: reshape
+
+``` r
+require(plyr)
+```
+
+    ## Loading required package: plyr
+
+    ## 
+    ## Attaching package: 'plyr'
+
+    ## The following objects are masked from 'package:reshape':
+    ## 
+    ##     rename, round_any
+
+    ## The following object is masked from 'package:maps':
+    ## 
+    ##     ozone
+
+``` r
+orderByGenotype = order(GENOTYPEPick)
+cut = sum(GENOTYPEPick[orderByGenotype] ==1) + 0.5
+
+
+T1 = T[orderByGenotype,orderByGenotype]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+T.m = melt(T1)
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](FigsOmni/unnamed-chunk-13-1.png)
+
+excluding 16
+
+``` r
+T1 = T[orderByGenotype,orderByGenotype]
+T1[16,]<-NA
+T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](FigsOmni/unnamed-chunk-14-1.png)
+
+Grouped by sex
+
+``` r
+require(reshape)
+require(plyr)
+
+orderBySex = order(SEXPick)
+cut = sum(SEXPick[orderBySex] ==1) + 0.5
+
+
+T1 = T[orderBySex,orderBySex]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](FigsOmni/unnamed-chunk-15-1.png)
+
+exclude the outlier and plot again:
+
+``` r
+T1 = T[orderBySex,orderBySex]
+T1[5,]<-NA
+T1[,5]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](FigsOmni/unnamed-chunk-16-1.png)

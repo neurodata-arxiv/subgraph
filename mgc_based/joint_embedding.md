@@ -146,7 +146,6 @@ Pairs plot over genotype
 
 ``` r
 df = data.frame(as.data.frame(D[,1:10]), "genotype"=as.factor(GENOTYPEPick))
-
 ggpairs(df, aes(colour = genotype, alpha = 0.4))
 ```
 
@@ -163,11 +162,45 @@ ggpairs(df, aes(colour = genotype, alpha = 0.4))
 
 ![](Figs/unnamed-chunk-4-1.png)
 
+p-value of KW tests for each dimension
+
+``` r
+kw_test_vec = numeric(10)
+
+for(i in 1:10){
+  kw_test = kruskal.test(D[,i]~as.factor(df$genotype))
+  kw_test_vec[i]=kw_test$p.value
+}
+
+plot(kw_test_vec, ylim=c(0,1))
+abline(h=0.05)
+```
+
+![](Figs/unnamed-chunk-5-1.png)
+
+p-value of Wilcoxon tests for each dimension
+
+``` r
+wilcoxon_test_vec = numeric(10)
+
+for(i in 1:10){
+    x1 = D[df$genotype==1,i]
+    x2 = D[df$genotype==2,i]
+    
+    wc_test = wilcox.test(x1,x2, alternative = "two.sided")
+    wilcoxon_test_vec[i]=wc_test$p.value
+}
+
+plot(wilcoxon_test_vec, ylim=c(0,1))
+abline(h=0.05)
+```
+
+![](Figs/unnamed-chunk-6-1.png)
+
 Pairs plot over sex
 
 ``` r
 df = data.frame(as.data.frame(D[,1:10]), "sex"=as.factor(SEXPick))
-
 ggpairs(df, aes(colour = sex, alpha = 0.4))
 ```
 
@@ -182,4 +215,230 @@ ggpairs(df, aes(colour = sex, alpha = 0.4))
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
     ## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
 
-![](Figs/unnamed-chunk-5-1.png)
+![](Figs/unnamed-chunk-7-1.png)
+
+p-value of KW tests for each dimension
+
+``` r
+kw_test_vec = numeric(10)
+
+for(i in 1:10){
+  kw_test = kruskal.test(D[,i]~as.factor(df$sex))
+  kw_test_vec[i]=kw_test$p.value
+}
+
+plot(kw_test_vec, ylim=c(0,1))
+abline(h=0.05)
+```
+
+![](Figs/unnamed-chunk-8-1.png)
+
+p-value of Wilcoxon tests for each dimension
+
+``` r
+wilcoxon_test_vec = numeric(10)
+
+for(i in 1:10){
+    x1 = D[df$sex==1,i]
+    x2 = D[df$sex==2,i]
+    
+    wc_test = wilcox.test(x1,x2, alternative = "two.sided")
+    wilcoxon_test_vec[i]=wc_test$p.value
+}
+
+plot(wilcoxon_test_vec, ylim=c(0,1))
+abline(h=0.05)
+```
+
+![](Figs/unnamed-chunk-9-1.png)
+
+Plot of eigenvectors
+====================
+
+``` r
+U = stiefelDecomp$U0[,1:10]
+
+df = data.frame("idx"=c(1:n),"h"=c(U),"dim"=as.factor(rep(c(1:10),each=n)))
+
+ggplot(data=df) + geom_line(aes(x=idx,y=h))+facet_wrap(~dim,scale="free") + 
+  theme(axis.title=element_blank(), 
+        axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(strip.text.y = element_text(angle = 0, vjust=0.2, hjust=0)) +
+  theme(axis.title=element_blank(), 
+        axis.text.x = element_blank(), axis.ticks = element_blank()) +
+  theme(strip.text.x = element_text(angle = 0, vjust=0.2, hjust=0)) 
+```
+
+![](Figs/unnamed-chunk-10-1.png)
+
+Eigenmaps
+=========
+
+1
+
+``` r
+image.plot(U[,1]%*%t(U[,1]))
+```
+
+![](Figs/unnamed-chunk-11-1.png)
+
+3
+
+``` r
+image.plot(U[,3]%*%t(U[,3]))
+```
+
+![](Figs/unnamed-chunk-12-1.png)
+
+6
+
+``` r
+image.plot(U[,6]%*%t(U[,6]))
+```
+
+![](Figs/unnamed-chunk-13-1.png)
+
+7
+
+``` r
+image.plot(U[,7]%*%t(U[,7]))
+```
+
+![](Figs/unnamed-chunk-14-1.png)
+
+9
+
+``` r
+image.plot(U[,9]%*%t(U[,9]))
+```
+
+![](Figs/unnamed-chunk-15-1.png)
+
+T-matrix
+========
+
+``` r
+D1 = D[,c(1:10)]
+T= matrix(0,m,m)
+
+for(i in 1:m){
+  for(j in 1:i){
+    T[i,j] = norm(D1[i,]-D1[j,])  
+    T[j,i] = T[i,j]
+  }
+}
+```
+
+Grouped by genotype
+
+``` r
+require(reshape)
+```
+
+    ## Loading required package: reshape
+
+``` r
+require(plyr)
+```
+
+    ## Loading required package: plyr
+
+    ## 
+    ## Attaching package: 'plyr'
+
+    ## The following objects are masked from 'package:reshape':
+    ## 
+    ##     rename, round_any
+
+    ## The following object is masked from 'package:maps':
+    ## 
+    ##     ozone
+
+``` r
+orderByGenotype = order(GENOTYPEPick)
+cut = sum(GENOTYPEPick[orderByGenotype] ==1) + 0.5
+
+
+T1 = T[orderByGenotype,orderByGenotype]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](Figs/unnamed-chunk-17-1.png)
+
+No.16 seems to be outlier, exclude it and plot again:
+
+``` r
+T1 = T[orderByGenotype,orderByGenotype]
+T1[16,]<-NA
+T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](Figs/unnamed-chunk-18-1.png)
+
+It appears genotype 2 (diseased group) is pretty homogeneous, while genotype 1 is not.
+
+Grouped by sex
+
+``` r
+require(reshape)
+require(plyr)
+
+orderBySex = order(SEXPick)
+cut = sum(SEXPick[orderBySex] ==1) + 0.5
+
+
+T1 = T[orderBySex,orderBySex]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](Figs/unnamed-chunk-19-1.png)
+
+exclude the outlier and plot again:
+
+``` r
+T1 = T[orderBySex,orderBySex]
+T1[5,]<-NA
+T1[,5]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+```
+
+![](Figs/unnamed-chunk-20-1.png)
+
+hard to tell the difference between 2 sex.

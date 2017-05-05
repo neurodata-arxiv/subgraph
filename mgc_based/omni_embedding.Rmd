@@ -8,7 +8,7 @@ output:
 ---
 
 ```{r global_options, include=FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='FigsOmni/',
                       echo=T, warning=FALSE, message=T)
 ```
 
@@ -272,7 +272,7 @@ lda_vertex= data.frame("vertex" = c(1:n), "genotype_error" = lda_error[,1], "sex
 df0$vertex = factor(df0$vertex, levels=order(lda_vertex$genotype_error))
 
 
-for(i in 1:tot_i){
+for(i in 1:1){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
@@ -304,7 +304,7 @@ for(i in 1:tot_i){
 df0$vertex = factor(df0$vertex, levels=order(lda_vertex$sex_error))
 
  
-for(i in 1:tot_i){
+for(i in 1:1){
 
   start_i = (i-1)*10+1
   end_i = min(i*10,n)
@@ -328,3 +328,115 @@ for(i in 1:tot_i){
 ```
 
 
+#T-matrix
+
+```{r}
+
+D<- sapply(c(1:m), function(i){
+  c( df0$x1[df0$id == i], df0$x2[df0$id == i])
+})
+  
+D1 = t(D)
+T= matrix(0,m,m)
+
+for(i in 1:m){
+  for(j in 1:i){
+    T[i,j] = norm(D1[i,]-D1[j,])  
+    T[j,i] = T[i,j]
+  }
+}
+
+```
+
+
+
+
+Grouped by genotype
+
+```{r}
+require(reshape)
+require(plyr)
+
+orderByGenotype = order(GENOTYPEPick)
+cut = sum(GENOTYPEPick[orderByGenotype] ==1) + 0.5
+
+
+T1 = T[orderByGenotype,orderByGenotype]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+T.m = melt(T1)
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+
+```
+
+excluding 16
+```{r}
+
+
+T1 = T[orderByGenotype,orderByGenotype]
+T1[16,]<-NA
+T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+
+```
+
+
+Grouped by sex
+
+```{r}
+require(reshape)
+require(plyr)
+
+orderBySex = order(SEXPick)
+cut = sum(SEXPick[orderBySex] ==1) + 0.5
+
+
+T1 = T[orderBySex,orderBySex]
+# T1[16,]<-NA
+# T1[,16]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+
+```
+
+
+
+exclude the outlier and plot again:
+
+```{r}
+
+
+T1 = T[orderBySex,orderBySex]
+T1[5,]<-NA
+T1[,5]<-NA
+
+
+
+T.m = melt(T1)
+
+
+ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
+     colour = "blue") + scale_fill_gradient2(low = "blue",mid="white",
+     high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
+
+```
