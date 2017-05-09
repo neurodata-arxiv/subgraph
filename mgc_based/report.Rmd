@@ -1,0 +1,297 @@
+---
+title: "Data Analysis"
+author: "Author"
+date: '`r Sys.Date()`'
+output:
+  md_document: 
+    variant: markdown_github
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='FigsReport/',
+                      echo=F, warning=FALSE, message=F)
+```
+
+```{r}
+setwd("~/git/subgraph/mgc_based/")
+
+require('igraph')
+require('ggplot2')
+require('fields')
+
+options(max.print=100)
+
+listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
+
+#read in covariates and graph list
+#find those with common ids, sort by id
+
+covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
+common_id<- intersect(covariates$RUNNO , ids)
+
+covariates <- covariates[covariates$RUNNO%in%common_id,]
+covariates <- covariates[order(covariates$RUNNO),]  
+
+listGs<- listGs[ids%in%common_id]
+listGs<- listGs[order(listGs)]
+
+graphList<- lapply(listGs, function(x){
+  read.graph( file = paste("../graphml/",x,sep = ""),format = "graphml")
+})
+
+AdjacencyList<- lapply(graphList, function(x){
+  get.adjacency(x)
+})
+
+
+n = nrow(AdjacencyList[[1]])
+half = c(1:(n/2))
+reordered = c( half*2-1,half*2)
+
+TriangleList <-  lapply(graphList, function(x){
+  a=count_triangles(x)
+  a[reordered]
+})
+
+
+CluscoeffList<- lapply(graphList, function(x){
+  a=transitivity(x,"local")
+  a[reordered]
+})
+
+AdjacencyList<- lapply(AdjacencyList, function(x){
+  x[reordered,reordered]
+})
+
+HemisphereList<- lapply(graphList, function(x){
+  get.vertex.attribute(x,name="hemisphere")
+})
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+####
+
+AdjacencyListPick =  list()
+TriangleListPick =list()
+CluscoeffListPick = list()
+for(i in 1:length(AdjacencyList)){
+  if(covariates$GENOTYPE[i]>=1){
+    AdjacencyListPick[[length(AdjacencyListPick)+1]] = AdjacencyList[[i]]
+    TriangleListPick[[length(TriangleListPick)+1]] = TriangleList[[i]]
+    CluscoeffListPick[[length(CluscoeffListPick)+1]] = CluscoeffList[[i]]
+  }
+}
+
+
+DegreeListPick<- lapply(AdjacencyListPick, function(x){
+  rowSums(as.matrix(x))
+  })
+
+
+
+GENOTYPEPick = covariates$GENOTYPE[covariates$GENOTYPE>=1]
+
+SEXPick = covariates$GENDER[covariates$GENOTYPE>=1]
+
+m = length(GENOTYPEPick)
+```
+
+
+# Difference between two genotypes
+
+We focus on comparing subjects with genotype 1 (n1 = 9) and genotype 2 (n2=12).
+
+
+```{r}
+
+
+left_idx = c(1: (n/2))
+right_idx = c((n/2+1):n)
+
+LRSumList = lapply( AdjacencyListPick, function(x){
+  A = matrix(0,2,2)
+  A[1,1] = sum(x[left_idx,left_idx])
+  A[1,2] = sum(x[left_idx,right_idx])
+  A[2,2] = sum(x[right_idx,right_idx])
+  A[2,1] = A[1,2]
+  A
+})
+
+
+total_edges<-sapply(LRSumList, function(x){
+  sum(x)
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+
+n1 = sum(df$genotype==1)
+n2 = sum(df$genotype==2)
+```
+
+In the total number of edges on the whole brain, there seems to be a difference between two genotypes, although statistical test does not indicate the difference is significant. 
+
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+
+```
+
+As a reference, there does not seem to be a clear difference between two sexes:
+
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$sex))
+
+```
+
+We found the difference in genotypes is attributed to the number of *cross-hemisphere* connections, which shows a significant difference.
+
+```{r}
+total_edges<-sapply(LRSumList, function(x){
+  sum(x[1,2])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+
+
+#Jointly embedding the graph in low dimensional space
+
+The graphs are jointly embedded into low-dimensional space (with d=10). This is equivalent to PCA, except the principle components (factors) are shared among all subjects. The following plots the top 10 factors.
+```{r}
+
+load(file= "embedding.Rda")
+
+Dlist = sapply(stiefelDecomp$D_list,function(x){
+  diag(x)
+})
+
+D = t(Dlist)
+
+
+U = stiefelDecomp$U0[,1:10]
+
+df = data.frame("idx"=c(1:n),"h"=c(U),"dim"=as.factor(rep(c(1:10),each=n)))
+
+ggplot(data=df) + geom_line(aes(x=idx,y=h))+facet_wrap(~dim,scale="free") + 
+  theme(axis.title=element_blank(), 
+        axis.text.y = element_blank(), axis.ticks = element_blank()) +
+  theme(strip.text.y = element_text(angle = 0, vjust=0.2, hjust=0)) +
+  theme(axis.title=element_blank(), 
+        axis.text.x = element_blank(), axis.ticks = element_blank()) +
+  theme(strip.text.x = element_text(angle = 0, vjust=0.2, hjust=0)) 
+
+```
+
+
+ Each graph is a transform of the linear combination of the 10 eigenmaps. We found the 6th eigenmap particularly interesting:
+ 
+The left shows the raw estimate, the right shows the clustered estimate. The vertices are sorted by the vertice index in each hemisphere.
+
+ 
+```{r}
+
+par(mfrow=c(1,2))
+image.plot(U[,6]%*%t(U[,6]))
+
+km6 = kmeans(U[,6],centers = 3)
+
+U6fitted = km6$centers[km6$cluster]
+
+U6fitted2 = U6fitted %*%t(U6fitted)
+
+image.plot(U6fitted2)
+
+```
+
+The same eigenmap sorted by the clustered blocks.
+
+```{r}
+
+oU6 = order(U6fitted)
+
+par(mfrow=c(1,2))
+image.plot(U[oU6,6]%*%t(U[oU6,6]))
+image.plot(U6fitted2[oU6,oU6])
+
+```
+
+
+#Omni-embedding the graph in low dimensional space
+
+We use another embedding named omni-embedding. Each graph is embedded into 2-dimensional space. The difference is that the principle components (factors) are NOT shared across subjects.
+
+We found there is clear separation of the genotypes on the 2-dimensional representation of one vertex. Vertex 111 and its couterpart in the R hemisphere is shown.
+
+```{r}
+load(file ="omni_embedding.Rda")
+
+Xhat = Xhat.out$Xhat
+df0 = data.frame( "x1"=Xhat[,1] ,"x2"=Xhat[,2], "id"= as.factor(rep(c(1:m),each=n)),"genotype"= as.factor(rep(GENOTYPEPick,each=n)),"sex"=as.factor(rep(SEXPick,each=n)), "vertex"= (rep(c(1:n),m)))
+
+df1 = df0[df0$vertex %in% c(111, 277),]
+ggplot(df1, aes(x=x1, y=x2,col=genotype)) +  geom_point() + facet_wrap(~vertex)
+```
+
+
+In the degree distribution of vertex 111 over 21 subjects, there is some difference between two genotypes:
+
+
+```{r}
+
+degree111 = sapply(DegreeListPick, function(x)x[111])
+
+df1 = data.frame( "degree" =  degree111, "genotype" = as.factor(GENOTYPEPick), "sex" = SEXPick)
+
+ggplot(data=df1, aes(x= 1, y=degree,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = df1$degree[df1$genotype ==1]
+x2 = df1$degree[df1$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df1$degree~as.factor(df1$genotype))
+
+```
+
+
+
+#Other things we assessed but did not find meaningful signal
+
+1. Difference between total connections within either hemisphere, with respect to genotype
+2. Difference between total connections within either hemisphere, with respect to sex
+3. Difference between Total connections across hemipheres, with respect to sex
+4. Screening individual vertex without embedding.

@@ -3,40 +3,40 @@ Raw Adjacency Plots
 
 Raw Adjacency Plots for Genotype 1
 
-![](Figs/unnamed-chunk-2-1.png)![](Figs/unnamed-chunk-2-2.png)![](Figs/unnamed-chunk-2-3.png)![](Figs/unnamed-chunk-2-4.png)![](Figs/unnamed-chunk-2-5.png)
+![](FigsEDA/unnamed-chunk-2-1.png)![](FigsEDA/unnamed-chunk-2-2.png)![](FigsEDA/unnamed-chunk-2-3.png)![](FigsEDA/unnamed-chunk-2-4.png)![](FigsEDA/unnamed-chunk-2-5.png)
 
 Raw Adjacency Plots for Genotype 2
 
-![](Figs/unnamed-chunk-3-1.png)![](Figs/unnamed-chunk-3-2.png)![](Figs/unnamed-chunk-3-3.png)![](Figs/unnamed-chunk-3-4.png)![](Figs/unnamed-chunk-3-5.png)![](Figs/unnamed-chunk-3-6.png)
+![](FigsEDA/unnamed-chunk-3-1.png)![](FigsEDA/unnamed-chunk-3-2.png)![](FigsEDA/unnamed-chunk-3-3.png)![](FigsEDA/unnamed-chunk-3-4.png)![](FigsEDA/unnamed-chunk-3-5.png)![](FigsEDA/unnamed-chunk-3-6.png)
 
 Average Adjacency Plots
 =======================
 
 Genotype 1
 
-![](Figs/unnamed-chunk-4-1.png) Genotype 2
+![](FigsEDA/unnamed-chunk-4-1.png) Genotype 2
 
-![](Figs/unnamed-chunk-5-1.png)
+![](FigsEDA/unnamed-chunk-5-1.png)
 
 Degree Distribution
 ===================
 
 Plotted over two genotypes
 
-![](Figs/unnamed-chunk-6-1.png)
+![](FigsEDA/unnamed-chunk-6-1.png)
 
-Plotted over two sex ![](Figs/unnamed-chunk-7-1.png)
+Plotted over two sex ![](FigsEDA/unnamed-chunk-7-1.png)
 
 Betweenness Centrality Distribution
 ===================================
 
 Plotted over two genotypes
 
-![](Figs/unnamed-chunk-8-1.png)
+![](FigsEDA/unnamed-chunk-8-1.png)
 
 Plotted over two sex
 
-![](Figs/unnamed-chunk-9-1.png)
+![](FigsEDA/unnamed-chunk-9-1.png)
 
 <!-- Genotype1 -->
 <!-- ```{r} -->
@@ -76,7 +76,7 @@ Plotted over two sex
 total edges
 ===========
 
-Over genotype ![](Figs/unnamed-chunk-14-1.png)
+Over genotype ![](FigsEDA/unnamed-chunk-14-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -91,7 +91,7 @@ Over genotype ![](Figs/unnamed-chunk-14-1.png)
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 2.4444, df = 1, p-value = 0.1179
 
-Over sex ![](Figs/unnamed-chunk-15-1.png)
+Over sex ![](FigsEDA/unnamed-chunk-15-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -109,7 +109,7 @@ Over sex ![](Figs/unnamed-chunk-15-1.png)
 edges in left hemisphere
 ========================
 
-Over genotype ![](Figs/unnamed-chunk-17-1.png)
+Over genotype ![](FigsEDA/unnamed-chunk-17-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -124,7 +124,7 @@ Over genotype ![](Figs/unnamed-chunk-17-1.png)
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 0.24747, df = 1, p-value = 0.6189
 
-Over sex ![](Figs/unnamed-chunk-18-1.png)
+Over sex ![](FigsEDA/unnamed-chunk-18-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -142,7 +142,7 @@ Over sex ![](Figs/unnamed-chunk-18-1.png)
 edges in right hemisphere
 =========================
 
-Over genotype ![](Figs/unnamed-chunk-21-1.png)
+Over genotype ![](FigsEDA/unnamed-chunk-21-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -157,7 +157,7 @@ Over genotype ![](Figs/unnamed-chunk-21-1.png)
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 0.50505, df = 1, p-value = 0.4773
 
-Over sex ![](Figs/unnamed-chunk-22-1.png)
+Over sex ![](FigsEDA/unnamed-chunk-22-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -175,7 +175,7 @@ Over sex ![](Figs/unnamed-chunk-22-1.png)
 edges across left and right
 ===========================
 
-Over genotype ![](Figs/unnamed-chunk-25-1.png)
+Over genotype ![](FigsEDA/unnamed-chunk-25-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
@@ -190,7 +190,7 @@ Over genotype ![](Figs/unnamed-chunk-25-1.png)
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 3.6818, df = 1, p-value = 0.05501
 
-Over sex ![](Figs/unnamed-chunk-26-1.png)
+Over sex ![](FigsEDA/unnamed-chunk-26-1.png)
 
     ## 
     ##  Wilcoxon rank sum test
