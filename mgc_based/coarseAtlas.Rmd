@@ -114,13 +114,15 @@ atlas = atlas[order(atlas$Value),]
 ```{r}
 
 extractRegionCount <- function(levels){
-regions = apply( cbind(rep(c("L","R"), n/2), as.character(levels)), 1, function(x)paste(x[1],x[2],sep="-"))
-
+  
+regions = apply( cbind(rep(c("L","R"), n/2), rep(as.character(levels),each=2)),1, function(x)paste(x[1],x[2],sep="-"))
 
 regionsSorted = regions[reordered]
 
 u_regions = unique(regionsSorted)
 n_regions = length(u_regions)
+
+n_regions
 
 
 RegionCounts<- lapply(AdjacencyListPick, function(x){
@@ -183,8 +185,10 @@ for(i in geno2){
 avgGeno2 = Asum/length(geno2)
 
 par(mfrow=c(1,2))
-image.plot(avgGeno1,zlim=c(0,1600))
-image.plot(avgGeno2,zlim=c(0,1600))
+zlim = range(c(avgGeno1, avgGeno2))
+
+image.plot(avgGeno1,zlim=zlim)
+image.plot(avgGeno2,zlim=zlim)
 
 ```
 
@@ -271,7 +275,97 @@ kruskal.test(df$total_edges~as.factor(df$genotype))
 
 
 
-2. At level 3 atlas:
+2. At level 2 atlas:
+
+Genotype 1 vs 2
+
+```{r}
+
+RegionCounts = RegionCounts_lv2
+geno1 = c(1:m)[GENOTYPEPick == 1]
+
+n_regions = nrow(RegionCounts[[1]])
+
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno1){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno1 = Asum/length(geno1)
+
+geno2 = c(1:m)[GENOTYPEPick == 2]
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno2){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno2 = Asum/length(geno2)
+
+par(mfrow=c(1,2))
+
+zlim = range(c(avgGeno1, avgGeno2))
+image.plot(avgGeno1, zlim= zlim)
+image.plot(avgGeno2, zlim= zlim)
+
+```
+
+
+Absolute difference in averages
+```{r}
+image.plot(abs(avgGeno1-avgGeno2))
+```
+
+
+
+Most different region names:
+
+```{r}
+
+nregion = nrow(avgGeno1)
+
+
+diff = abs(avgGeno1-avgGeno2)
+
+pick = diff == (sort(diff,decreasing = T)[3])
+
+colnames(avgGeno1)[colSums(pick)>0]
+
+pick_idx = c(1:nregion)[colSums(pick)>0]
+
+```
+
+Most different region names:
+
+Across L-R
+
+```{r}
+
+nregion = nrow(avgGeno1)
+region16 = sapply(RegionCounts,function(x){
+  x[pick_idx[1], pick_idx[2]]
+})
+
+df = data.frame("total_edges"= c(region16), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = df$total_edges[df$genotype==1]
+x2 = df$total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+Not significantly different.
+
+
+
+
+3. At level 3 atlas:
 
 Genotype 1 vs 2
 
@@ -324,7 +418,7 @@ nregion = nrow(avgGeno1)
 
 diff = abs(avgGeno1-avgGeno2)
 
-pick = diff == max(diff)
+pick = diff == (sort(diff,decreasing = T)[3])
 
 colnames(avgGeno1)[colSums(pick)>0]
 
@@ -356,10 +450,10 @@ kruskal.test(df$total_edges~as.factor(df$genotype))
 
 ```
 
-Significantly different.
+Not significantly different.
 
 
-3. At level 4 atlas:
+4. At level 4 atlas:
 
 Genotype 1 vs 2
 
@@ -411,7 +505,7 @@ nregion = nrow(avgGeno1)
 
 diff = abs(avgGeno1-avgGeno2)
 
-pick = diff == max(diff)
+pick = diff == (sort(diff,decreasing = T)[3])
 
 colnames(avgGeno1)[colSums(pick)>0]
 
@@ -446,7 +540,7 @@ kruskal.test(df$total_edges~as.factor(df$genotype))
 
 ```
 
-Not significantly different.
+Significantly different.
 
 
 #Average Adjacency Plots for Sex
@@ -456,7 +550,11 @@ As reference, we do not find signals in sex.
 Sex 1 vs 2
 
 ```{r}
+
+RegionCounts=   RegionCounts_lv1
 geno1 = c(1:m)[SEXPick == 1]
+
+n_regions= nrow(RegionCounts[[1]])
 
 Asum = matrix(0, n_regions,n_regions)
 for(i in geno1){
@@ -475,8 +573,9 @@ for(i in geno2){
 avgGeno2 = Asum/length(geno2)
 
 par(mfrow=c(1,2))
-image.plot(avgGeno1,zlim=c(0,1600))
-image.plot(avgGeno2,zlim=c(0,1600))
+zlim = range(c(avgGeno1,avgGeno2))
+image.plot(avgGeno1,zlim=zlim)
+image.plot(avgGeno2,zlim=zlim)
 
 ```
 
