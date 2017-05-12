@@ -138,7 +138,8 @@ atlas = atlas[order(atlas$Value),]
 ```
 
 ``` r
-regions = apply( cbind(rep(c("L","R"), n/2), as.character(atlas$Level_1)), 1, function(x)paste(x[1],x[2],sep="-"))
+extractRegionCount <- function(levels){
+regions = apply( cbind(rep(c("L","R"), n/2), as.character(levels)), 1, function(x)paste(x[1],x[2],sep="-"))
 
 
 regionsSorted = regions[reordered]
@@ -156,17 +157,35 @@ RegionCounts<- lapply(AdjacencyListPick, function(x){
         m[i,j] = sum(x[pick_i,pick_j])
       }
   }
+  
+  row.names(m) = u_regions
+  colnames(m) = u_regions
+
   m
 })
+
+RegionCounts
+}
+
+RegionCounts_lv1 = extractRegionCount(atlas$Level_1)
+RegionCounts_lv2 = extractRegionCount(atlas$Level_2)
+RegionCounts_lv3 = extractRegionCount(atlas$Level_3)
+RegionCounts_lv4 = extractRegionCount(atlas$Level_4)
 ```
 
 Average Adjacency Plots
 =======================
 
+1.  At level 1 atlas:
+
 Genotype 1 vs 2
 
 ``` r
+RegionCounts = RegionCounts_lv1
 geno1 = c(1:m)[GENOTYPEPick == 1]
+
+n_regions = nrow(RegionCounts[[1]])
+
 
 Asum = matrix(0, n_regions,n_regions)
 for(i in geno1){
@@ -317,8 +336,222 @@ kruskal.test(df$total_edges~as.factor(df$genotype))
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 0.32323, df = 1, p-value = 0.5697
 
+1.  At level 3 atlas:
+
+Genotype 1 vs 2
+
+``` r
+RegionCounts = RegionCounts_lv3
+geno1 = c(1:m)[GENOTYPEPick == 1]
+
+n_regions = nrow(RegionCounts[[1]])
+
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno1){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno1 = Asum/length(geno1)
+
+geno2 = c(1:m)[GENOTYPEPick == 2]
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno2){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno2 = Asum/length(geno2)
+
+par(mfrow=c(1,2))
+
+zlim = range(c(avgGeno1, avgGeno2))
+image.plot(avgGeno1, zlim= zlim)
+image.plot(avgGeno2, zlim= zlim)
+```
+
+![](FigCoarse/unnamed-chunk-10-1.png)
+
+Absolute difference in averages
+
+``` r
+image.plot(abs(avgGeno1-avgGeno2))
+```
+
+![](FigCoarse/unnamed-chunk-11-1.png)
+
+Most different region names:
+
+``` r
+nregion = nrow(avgGeno1)
+
+
+diff = abs(avgGeno1-avgGeno2)
+
+pick = diff == max(diff)
+
+colnames(avgGeno1)[colSums(pick)>0]
+```
+
+    ## [1] "L-1_isocortex" "R-1_isocortex"
+
+``` r
+pick_idx = c(1:nregion)[colSums(pick)>0]
+```
+
+Most different region names:
+
+Across L-R
+
+``` r
+nregion = nrow(avgGeno1)
+region16 = sapply(RegionCounts,function(x){
+  x[pick_idx[1], pick_idx[2]]
+})
+
+df = data.frame("total_edges"= c(region16), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+```
+
+![](FigCoarse/unnamed-chunk-13-1.png)
+
+``` r
+x1 = df$total_edges[df$genotype==1]
+x2 = df$total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+```
+
+    ## 
+    ##  Wilcoxon rank sum test
+    ## 
+    ## data:  x1 and x2
+    ## W = 83, p-value = 0.02045
+    ## alternative hypothesis: true location shift is greater than 0
+
+``` r
+kruskal.test(df$total_edges~as.factor(df$genotype))
+```
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 4.2475, df = 1, p-value = 0.03931
+
+Significantly different.
+
+1.  At level 4 atlas:
+
+Genotype 1 vs 2
+
+``` r
+RegionCounts = RegionCounts_lv4
+geno1 = c(1:m)[GENOTYPEPick == 1]
+
+n_regions = nrow(RegionCounts[[1]])
+
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno1){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno1 = Asum/length(geno1)
+
+geno2 = c(1:m)[GENOTYPEPick == 2]
+
+Asum = matrix(0, n_regions,n_regions)
+for(i in geno2){
+    Asum = Asum + as.matrix(RegionCounts[[i]])
+}
+
+avgGeno2 = Asum/length(geno2)
+
+par(mfrow=c(1,2))
+
+zlim = range(c(avgGeno1, avgGeno2))
+image.plot(avgGeno1, zlim= zlim)
+image.plot(avgGeno2, zlim= zlim)
+```
+
+![](FigCoarse/unnamed-chunk-14-1.png)
+
+Absolute difference in averages
+
+``` r
+image.plot(abs(avgGeno1-avgGeno2))
+```
+
+![](FigCoarse/unnamed-chunk-15-1.png)
+
+Most different region names:
+
+``` r
+nregion = nrow(avgGeno1)
+
+
+diff = abs(avgGeno1-avgGeno2)
+
+pick = diff == max(diff)
+
+colnames(avgGeno1)[colSums(pick)>0]
+```
+
+    ## [1] "L-white_matter" "R-white_matter"
+
+``` r
+pick_idx = c(1:nregion)[colSums(pick)>0]
+```
+
+Across L-R
+
+``` r
+nregion = nrow(avgGeno1)
+region16 = sapply(RegionCounts,function(x){
+  x[pick_idx[1], pick_idx[2]]
+})
+
+
+
+df = data.frame("total_edges"= c(region16), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+```
+
+![](FigCoarse/unnamed-chunk-17-1.png)
+
+``` r
+x1 = df$total_edges[df$genotype==1]
+x2 = df$total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+```
+
+    ## 
+    ##  Wilcoxon rank sum test with continuity correction
+    ## 
+    ## data:  x1 and x2
+    ## W = 63, p-value = 0.2728
+    ## alternative hypothesis: true location shift is greater than 0
+
+``` r
+kruskal.test(df$total_edges~as.factor(df$genotype))
+```
+
+    ## 
+    ##  Kruskal-Wallis rank sum test
+    ## 
+    ## data:  df$total_edges by as.factor(df$genotype)
+    ## Kruskal-Wallis chi-squared = 0.40962, df = 1, p-value = 0.5222
+
+Not significantly different.
+
 Average Adjacency Plots for Sex
 ===============================
+
+As reference, we do not find signals in sex.
 
 Sex 1 vs 2
 
@@ -346,7 +579,7 @@ image.plot(avgGeno1,zlim=c(0,1600))
 image.plot(avgGeno2,zlim=c(0,1600))
 ```
 
-![](FigCoarse/unnamed-chunk-10-1.png)
+![](FigCoarse/unnamed-chunk-18-1.png)
 
 Absolute difference in averages
 
@@ -354,7 +587,7 @@ Absolute difference in averages
 image.plot(abs(avgGeno1-avgGeno2))
 ```
 
-![](FigCoarse/unnamed-chunk-11-1.png)
+![](FigCoarse/unnamed-chunk-19-1.png)
 
 Connections within forebrain (region 1 and 6) seem to have most difference.
 
@@ -366,7 +599,7 @@ df = data.frame("total_edges"= c(region16), "id"= as.factor((c(1:m))),"genotype"
 ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
 ```
 
-![](FigCoarse/unnamed-chunk-12-1.png)
+![](FigCoarse/unnamed-chunk-20-1.png)
 
 ``` r
 x1 = df$total_edges[df$sex==1]
@@ -376,10 +609,10 @@ wilcox.test(x1,x2, alternative = "two.sided")
 ```
 
     ## 
-    ##  Wilcoxon rank sum test
+    ##  Wilcoxon rank sum test with continuity correction
     ## 
     ## data:  x1 and x2
-    ## W = 59, p-value = 0.8094
+    ## W = 58, p-value = 0.8602
     ## alternative hypothesis: true location shift is not equal to 0
 
 ``` r
@@ -390,7 +623,7 @@ kruskal.test(df$total_edges~as.factor(df$sex))
     ##  Kruskal-Wallis rank sum test
     ## 
     ## data:  df$total_edges by as.factor(df$sex)
-    ## Kruskal-Wallis chi-squared = 0.079339, df = 1, p-value = 0.7782
+    ## Kruskal-Wallis chi-squared = 0.044686, df = 1, p-value = 0.8326
 
 Within L-region forebrain
 
@@ -400,7 +633,7 @@ df = data.frame("total_edges"= c(region11), "id"= as.factor((c(1:m))),"genotype"
 ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
 ```
 
-![](FigCoarse/unnamed-chunk-13-1.png)
+![](FigCoarse/unnamed-chunk-21-1.png)
 
 ``` r
 x1 = df$total_edges[df$sex==1]
@@ -434,7 +667,7 @@ df = data.frame("total_edges"= c(region66), "id"= as.factor((c(1:m))),"genotype"
 ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
 ```
 
-![](FigCoarse/unnamed-chunk-14-1.png)
+![](FigCoarse/unnamed-chunk-22-1.png)
 
 ``` r
 x1 = df$total_edges[df$sex==1]
