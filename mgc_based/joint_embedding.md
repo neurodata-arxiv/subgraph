@@ -110,20 +110,14 @@ m = length(GENOTYPEPick)
 ```
 
 ``` r
-source("stiefel_diagonalize.r")
-```
-
-    ## Loading required package: rstiefel
-
-    ## Loading required package: msm
-
-``` r
-r=30
-
+# source("stiefel_diagonalize.r")
+# 
+# r=10
+# 
 # AdjacencyListPick = lapply(AdjacencyListPick, function(x){as.matrix(x)})
-
+# 
 # stiefelDecomp = stiefel_diagonalize(AdjacencyListPick, r)
-
+# 
 # save(stiefelDecomp, file="embedding.Rda")
 ```
 
@@ -282,13 +276,37 @@ image.plot(U[,1]%*%t(U[,1]))
 
 ![](Figs/unnamed-chunk-11-1.png)
 
+2
+
+``` r
+image.plot(U[,2]%*%t(U[,2]))
+```
+
+![](Figs/unnamed-chunk-12-1.png)
+
 3
 
 ``` r
 image.plot(U[,3]%*%t(U[,3]))
 ```
 
-![](Figs/unnamed-chunk-12-1.png)
+![](Figs/unnamed-chunk-13-1.png)
+
+4
+
+``` r
+image.plot(U[,4]%*%t(U[,4]))
+```
+
+![](Figs/unnamed-chunk-14-1.png)
+
+5
+
+``` r
+image.plot(U[,5]%*%t(U[,5]))
+```
+
+![](Figs/unnamed-chunk-15-1.png)
 
 6
 
@@ -296,23 +314,7 @@ image.plot(U[,3]%*%t(U[,3]))
 image.plot(U[,6]%*%t(U[,6]))
 ```
 
-![](Figs/unnamed-chunk-13-1.png)
-
-7
-
-``` r
-image.plot(U[,7]%*%t(U[,7]))
-```
-
-![](Figs/unnamed-chunk-14-1.png)
-
-9
-
-``` r
-image.plot(U[,9]%*%t(U[,9]))
-```
-
-![](Figs/unnamed-chunk-15-1.png)
+![](Figs/unnamed-chunk-16-1.png)
 
 T-matrix
 ========
@@ -373,14 +375,14 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](Figs/unnamed-chunk-17-1.png)
+![](Figs/unnamed-chunk-18-1.png)
 
-No.16 seems to be outlier, exclude it and plot again:
+No.12 seems to be outlier, exclude it and plot again:
 
 ``` r
 T1 = T[orderByGenotype,orderByGenotype]
-T1[16,]<-NA
-T1[,16]<-NA
+T1[12,]<-NA
+T1[,12]<-NA
 
 
 
@@ -392,7 +394,7 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](Figs/unnamed-chunk-18-1.png)
+![](Figs/unnamed-chunk-19-1.png)
 
 It appears genotype 2 (diseased group) is pretty homogeneous, while genotype 1 is not.
 
@@ -420,7 +422,7 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](Figs/unnamed-chunk-19-1.png)
+![](Figs/unnamed-chunk-20-1.png)
 
 exclude the outlier and plot again:
 
@@ -439,6 +441,6 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](Figs/unnamed-chunk-20-1.png)
+![](Figs/unnamed-chunk-21-1.png)
 
 hard to tell the difference between 2 sex.

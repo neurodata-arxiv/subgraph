@@ -8,7 +8,7 @@ symmetrize <- function(X)
     X
 }
 
-stiefel_diagonalize <- function(Y_list, r, diagD = T)
+stiefel_diagonalize <- function(Y_list, r, diagD = TRUE)
 {
 
     n = nrow(Y_list[[1]])

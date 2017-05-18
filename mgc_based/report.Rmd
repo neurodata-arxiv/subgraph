@@ -121,21 +121,20 @@ LRSumList = lapply( AdjacencyListPick, function(x){
 })
 
 
+
+```
+
+In the total number of edges on the whole brain, there seems to be a difference between two genotypes.
+
+```{r}
+
 total_edges<-sapply(LRSumList, function(x){
   sum(x)
 })
 
-
 df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
-
-
 n1 = sum(df$genotype==1)
 n2 = sum(df$genotype==2)
-```
-
-In the total number of edges on the whole brain, there seems to be a difference between two genotypes, although statistical test does not indicate the difference is significant. 
-
-```{r}
 
 ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
 
@@ -149,22 +148,9 @@ kruskal.test(df$total_edges~as.factor(df$genotype))
 
 ```
 
-As a reference, there does not seem to be a clear difference between two sexes:
-
-```{r}
-
-ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
 
 
-x1 = total_edges[df$sex==1]
-x2 = total_edges[df$sex==2]
-
-wilcox.test(x1,x2, alternative = "two.sided")
-kruskal.test(df$total_edges~as.factor(df$sex))
-
-```
-
-We found the difference in genotypes is attributed to the number of *cross-hemisphere* connections, which shows a significant difference.
+ *cross-hemisphere* connections show a significant difference.
 
 ```{r}
 total_edges<-sapply(LRSumList, function(x){
@@ -185,6 +171,71 @@ wilcox.test(x1,x2, alternative = "greater")
 kruskal.test(df$total_edges~as.factor(df$genotype))
 
 ```
+
+
+ within-L-hemisphere connections show a significant difference.
+
+```{r}
+total_edges<-sapply(LRSumList, function(x){
+  (x[1,1])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+
+ within-R-hemisphere connections do NOT show a significant difference.
+
+```{r}
+total_edges<-sapply(LRSumList, function(x){
+  (x[2,2])
+})
+
+
+df = data.frame("total_edges"= c(total_edges), "id"= as.factor((c(1:m))),"genotype"= as.factor((GENOTYPEPick)), "sex"=as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = total_edges[df$genotype==1]
+x2 = total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+```
+
+
+
+
+As a reference, there does not seem to be a clear difference between two sexes:
+
+```{r}
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=sex,group=sex))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~sex)
+
+
+x1 = total_edges[df$sex==1]
+x2 = total_edges[df$sex==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$sex))
+
+```
+
 
 
 
@@ -217,7 +268,8 @@ ggplot(data=df) + geom_line(aes(x=idx,y=h))+facet_wrap(~dim,scale="free") +
 ```
 
 
- Each graph is a transform of the linear combination of the 10 eigenmaps. We found the 6th eigenmap particularly interesting:
+ Each graph is a transform of the linear combination of the 10 eigenmaps.
+ 
  
 The left shows the raw estimate, the right shows the clustered estimate. The vertices are sorted by the vertice index in each hemisphere.
 
@@ -225,36 +277,25 @@ The left shows the raw estimate, the right shows the clustered estimate. The ver
 ```{r}
 
 par(mfrow=c(1,2))
-image.plot(U[,6]%*%t(U[,6]))
 
-km6 = kmeans(U[,6],centers = 3)
-
-U6fitted = km6$centers[km6$cluster]
-
-U6fitted2 = U6fitted %*%t(U6fitted)
-
-image.plot(U6fitted2)
-
-```
-
-The same eigenmap sorted by the clustered blocks.
-
-```{r}
-
-oU6 = order(U6fitted)
-
-par(mfrow=c(1,2))
-image.plot(U[oU6,6]%*%t(U[oU6,6]))
-image.plot(U6fitted2[oU6,oU6])
+for(i in 1:10)
+{
+  image.plot(U[,i]%*%t(U[,i]))
+  km6 = kmeans(U[,i],centers = 2)
+  U6fitted = km6$centers[km6$cluster]
+  U6fitted2 = U6fitted %*%t(U6fitted)
+  image.plot(U6fitted2)
+}
 
 ```
+
 
 
 #Omni-embedding the graph in low dimensional space
 
 We use another embedding named omni-embedding. Each graph is embedded into 2-dimensional space. The difference is that the principle components (factors) are NOT shared across subjects.
 
-We found there is clear separation of the genotypes on the 2-dimensional representation of one vertex. Vertex 111 and its couterpart in the R hemisphere is shown.
+We found there is some separation of the genotypes on the 2-dimensional representation of one vertex. Vertex 111 and its couterpart in the R hemisphere is shown.
 
 ```{r}
 load(file ="omni_embedding.Rda")
@@ -267,7 +308,28 @@ ggplot(df1, aes(x=x1, y=x2,col=genotype)) +  geom_point() + facet_wrap(~vertex)
 ```
 
 
-In the degree distribution of vertex 111 over 21 subjects, there is some difference between two genotypes:
+
+In the degree distribution of vertex 53 over 18 subjects, there is some difference between two genotypes:
+
+
+```{r}
+
+degree111 = sapply(DegreeListPick, function(x)x[53])
+
+df1 = data.frame( "degree" =  degree111, "genotype" = as.factor(GENOTYPEPick), "sex" = SEXPick)
+
+ggplot(data=df1, aes(x= 1, y=degree,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = df1$degree[df1$genotype ==1]
+x2 = df1$degree[df1$genotype==2]
+
+wilcox.test(x1,x2, alternative = "greater")
+kruskal.test(df1$degree~as.factor(df1$genotype))
+
+```
+
+In the degree distribution of vertex 111 over 18 subjects, there is some difference between two genotypes:
 
 
 ```{r}
@@ -291,7 +353,6 @@ kruskal.test(df1$degree~as.factor(df1$genotype))
 
 #Other things we assessed but did not find meaningful signal
 
-1. Difference between total connections within either hemisphere, with respect to genotype
-2. Difference between total connections within either hemisphere, with respect to sex
-3. Difference between Total connections across hemipheres, with respect to sex
-4. Screening individual vertex without embedding.
+1. Difference between total connections within either hemisphere, with respect to sex
+2. Difference between Total connections across hemipheres, with respect to sex
+3. Screening individual vertex without embedding.

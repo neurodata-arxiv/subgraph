@@ -56,7 +56,7 @@ listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
 #read in covariates and graph list
 #find those with common ids, sort by id
 
-covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+covariates<- read.csv("../graphml/covariates.csv",stringsAsFactors = F)
 ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
 common_id<- intersect(covariates$RUNNO , ids)
 
@@ -133,40 +133,69 @@ ase <- function(A, dim){
 Omni-embed into 2 dimensions, leading to (332\*2) points for each graph
 
 ``` r
-# 
-# Alist.log <- lapply(AdjacencyListPick, function(x) log(x + t(x)+1))
-# Alist.da <- lapply(Alist.log, function(y) y + diag(x=rowSums(y))/(n-1))
-# 
-# i=1
-# 
-# dhat <- 2
-# Tmat <- normT <- matrix(0,m,m)
-# pcol1 <- rep(c(1,3),each=n/2)
-# pcol2 <- rep(c(2,4),each=n/2)
-# 
-# 
-# require(Matrix)
-# nm = n*m
-# # omniA = sparseMatrix(i=1,j=1,x=0, dims=c(nm,nm))
-# 
-# omniA = matrix(0, nm,nm)
-# for(i in 1:m) {
-#     for(j in 1:i) {
-#         Ad <- as.matrix((Alist.da[[i]] + Alist.da[[j]]) / 2)
-#         i_idx1 =  n* (i-1)+1 
-#         i_idx2 = (n* i)
-#         j_idx1 =  n* (j-1)+1 
-#         j_idx2 = (n* j)
-#         omniA[i_idx1: i_idx2,j_idx1: j_idx2] = Ad
-#         omniA[j_idx1: j_idx2,i_idx1: i_idx2] = t(Ad)
-#     }
-#   print(i)
-# }
-# 
-# dmax <- 2
-# Xhat.out <- ase(omniA,dmax)
-# 
-# save(Xhat.out,file ="omni_embedding.Rda")
+Alist.log <- lapply(AdjacencyListPick, function(x) log(x + t(x)+1))
+Alist.da <- lapply(Alist.log, function(y) y + diag(x=rowSums(y))/(n-1))
+
+i=1
+
+dhat <- 2
+Tmat <- normT <- matrix(0,m,m)
+pcol1 <- rep(c(1,3),each=n/2)
+pcol2 <- rep(c(2,4),each=n/2)
+
+
+require(Matrix)
+```
+
+    ## Loading required package: Matrix
+
+``` r
+nm = n*m
+# omniA = sparseMatrix(i=1,j=1,x=0, dims=c(nm,nm))
+
+omniA = matrix(0, nm,nm)
+for(i in 1:m) {
+    for(j in 1:i) {
+        Ad <- as.matrix((Alist.da[[i]] + Alist.da[[j]]) / 2)
+        i_idx1 =  n* (i-1)+1
+        i_idx2 = (n* i)
+        j_idx1 =  n* (j-1)+1
+        j_idx2 = (n* j)
+        omniA[i_idx1: i_idx2,j_idx1: j_idx2] = Ad
+        omniA[j_idx1: j_idx2,i_idx1: i_idx2] = t(Ad)
+    }
+  print(i)
+}
+```
+
+    ## [1] 1
+    ## [1] 2
+    ## [1] 3
+    ## [1] 4
+    ## [1] 5
+    ## [1] 6
+    ## [1] 7
+    ## [1] 8
+    ## [1] 9
+    ## [1] 10
+    ## [1] 11
+    ## [1] 12
+    ## [1] 13
+    ## [1] 14
+    ## [1] 15
+    ## [1] 16
+    ## [1] 17
+    ## [1] 18
+
+``` r
+dmax <- 2
+Xhat.out <- ase(omniA,dmax)
+```
+
+    ## Loading required package: irlba
+
+``` r
+save(Xhat.out,file ="omni_embedding.Rda")
 ```
 
 ``` r
@@ -313,6 +342,21 @@ for(i in 1:1){
 
 ![](FigsOmni/unnamed-chunk-10-1.png)
 
+Histogram of LDA error
+
+``` r
+hist(lda_vertex$genotype_error)
+```
+
+![](FigsOmni/unnamed-chunk-11-1.png)
+
+``` r
+sort(lda_vertex$genotype_error)[1:10]
+```
+
+    ##  [1] 0.05555556 0.05555556 0.11111111 0.11111111 0.11111111 0.11111111
+    ##  [7] 0.16666667 0.16666667 0.16666667 0.16666667
+
 Over sex
 ========
 
@@ -341,7 +385,22 @@ for(i in 1:1){
 }
 ```
 
-![](FigsOmni/unnamed-chunk-11-1.png)
+![](FigsOmni/unnamed-chunk-12-1.png)
+
+Histogram of LDA error
+
+``` r
+hist(lda_vertex$sex_error)
+```
+
+![](FigsOmni/unnamed-chunk-13-1.png)
+
+``` r
+sort(lda_vertex$sex_error)[1:10]
+```
+
+    ##  [1] 0.1111111 0.1666667 0.1666667 0.1666667 0.1666667 0.1666667 0.1666667
+    ##  [8] 0.1666667 0.1666667 0.2222222
 
 T-matrix
 ========
@@ -370,6 +429,13 @@ require(reshape)
 
     ## Loading required package: reshape
 
+    ## 
+    ## Attaching package: 'reshape'
+
+    ## The following object is masked from 'package:Matrix':
+    ## 
+    ##     expand
+
 ``` r
 require(plyr)
 ```
@@ -393,8 +459,8 @@ cut = sum(GENOTYPEPick[orderByGenotype] ==1) + 0.5
 
 
 T1 = T[orderByGenotype,orderByGenotype]
-# T1[16,]<-NA
-# T1[,16]<-NA
+# T1[12,]<-NA
+# T1[,12]<-NA
 
 
 T.m = melt(T1)
@@ -404,14 +470,14 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](FigsOmni/unnamed-chunk-13-1.png)
+![](FigsOmni/unnamed-chunk-15-1.png)
 
-excluding 16
+excluding 12
 
 ``` r
 T1 = T[orderByGenotype,orderByGenotype]
-T1[16,]<-NA
-T1[,16]<-NA
+T1[12,]<-NA
+T1[,12]<-NA
 
 
 
@@ -423,7 +489,7 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](FigsOmni/unnamed-chunk-14-1.png)
+![](FigsOmni/unnamed-chunk-16-1.png)
 
 Grouped by sex
 
@@ -436,8 +502,8 @@ cut = sum(SEXPick[orderBySex] ==1) + 0.5
 
 
 T1 = T[orderBySex,orderBySex]
-# T1[16,]<-NA
-# T1[,16]<-NA
+# T1[12,]<-NA
+# T1[,12]<-NA
 
 
 
@@ -449,7 +515,7 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](FigsOmni/unnamed-chunk-15-1.png)
+![](FigsOmni/unnamed-chunk-17-1.png)
 
 exclude the outlier and plot again:
 
@@ -468,4 +534,4 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
      high = "red") + geom_vline(xintercept=cut) + geom_hline(yintercept=cut)
 ```
 
-![](FigsOmni/unnamed-chunk-16-1.png)
+![](FigsOmni/unnamed-chunk-18-1.png)

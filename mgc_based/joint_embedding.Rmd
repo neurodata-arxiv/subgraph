@@ -81,14 +81,14 @@ m = length(GENOTYPEPick)
 
 ```{r}
 
-source("stiefel_diagonalize.r")
-
-r=30
-
+# source("stiefel_diagonalize.r")
+# 
+# r=10
+# 
 # AdjacencyListPick = lapply(AdjacencyListPick, function(x){as.matrix(x)})
-
+# 
 # stiefelDecomp = stiefel_diagonalize(AdjacencyListPick, r)
-
+# 
 # save(stiefelDecomp, file="embedding.Rda")
 
 ```
@@ -234,11 +234,36 @@ image.plot(U[,1]%*%t(U[,1]))
 
 ```
 
+2
+
+```{r}
+
+image.plot(U[,2]%*%t(U[,2]))
+
+```
+
 3
 
 ```{r}
 
 image.plot(U[,3]%*%t(U[,3]))
+
+```
+
+
+4
+
+```{r}
+
+image.plot(U[,4]%*%t(U[,4]))
+
+```
+
+5
+
+```{r}
+
+image.plot(U[,5]%*%t(U[,5]))
 
 ```
 
@@ -250,23 +275,6 @@ image.plot(U[,6]%*%t(U[,6]))
 
 ```
 
-
-7
-
-```{r}
-
-image.plot(U[,7]%*%t(U[,7]))
-
-```
-
-
-9
-
-```{r}
-
-image.plot(U[,9]%*%t(U[,9]))
-
-```
 
 
 #T-matrix 
@@ -314,14 +322,14 @@ ggplot(T.m, aes(X1, X2)) + geom_tile(aes(fill = value),
 
 ```
 
-No.16 seems to be outlier, exclude it and plot again:
+No.12 seems to be outlier, exclude it and plot again:
 
 ```{r}
 
 
 T1 = T[orderByGenotype,orderByGenotype]
-T1[16,]<-NA
-T1[,16]<-NA
+T1[12,]<-NA
+T1[,12]<-NA
 
 
 

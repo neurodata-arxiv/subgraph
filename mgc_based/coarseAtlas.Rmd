@@ -26,7 +26,7 @@ listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
 #read in covariates and graph list
 #find those with common ids, sort by id
 
-covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+covariates<- read.csv("../graphml/covariates.csv",stringsAsFactors = F)
 ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
 common_id<- intersect(covariates$RUNNO , ids)
 
