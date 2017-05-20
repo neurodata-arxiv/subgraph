@@ -1,0 +1,252 @@
+---
+title: "Data Analysis"
+author: "Author"
+date: '`r Sys.Date()`'
+output:
+  md_document: 
+    variant: markdown_github
+---
+
+```{r global_options, include=FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='FigROItest/',
+                      echo=T, warning=FALSE, message=T)
+```
+
+```{r}
+setwd("~/git/subgraph/mgc_based/")
+
+require('igraph')
+require('ggplot2')
+require('fields')
+
+options(max.print=100)
+
+listGs<- list.files(path = "../graphml/", pattern = "*.graphml")
+
+#read in covariates and graph list
+#find those with common ids, sort by id
+
+covariates<- read.csv("../covariates/predictors.csv",stringsAsFactors = F)
+ids <- unlist( lapply(listGs,function(x)strtrim(x,6)))
+common_id<- intersect(covariates$RUNNO , ids)
+
+covariates <- covariates[covariates$RUNNO%in%common_id,]
+covariates <- covariates[order(covariates$RUNNO),]  
+
+listGs<- listGs[ids%in%common_id]
+listGs<- listGs[order(listGs)]
+
+graphList<- lapply(listGs, function(x){
+  read.graph( file = paste("../graphml/",x,sep = ""),format = "graphml")
+})
+
+AdjacencyList<- lapply(graphList, function(x){
+  get.adjacency(x)
+})
+
+
+n = nrow(AdjacencyList[[1]])
+half = c(1:(n/2))
+reordered = c( half*2-1,half*2)
+
+TriangleList <-  lapply(graphList, function(x){
+  a=count_triangles(x)
+  a[reordered]
+})
+
+
+CluscoeffList<- lapply(graphList, function(x){
+  a=transitivity(x,"local")
+  a[reordered]
+})
+
+AdjacencyList<- lapply(AdjacencyList, function(x){
+  x[reordered,reordered]
+})
+
+HemisphereList<- lapply(graphList, function(x){
+  get.vertex.attribute(x,name="hemisphere")
+})
+
+DegreeList<- lapply(AdjacencyList, function(x){
+  rowSums(as.matrix(x))
+  })
+
+####
+
+AdjacencyListPick =  list()
+TriangleListPick =list()
+CluscoeffListPick = list()
+for(i in 1:length(AdjacencyList)){
+  if(covariates$GENOTYPE[i]>=1){
+    AdjacencyListPick[[length(AdjacencyListPick)+1]] = AdjacencyList[[i]]
+    TriangleListPick[[length(TriangleListPick)+1]] = TriangleList[[i]]
+    CluscoeffListPick[[length(CluscoeffListPick)+1]] = CluscoeffList[[i]]
+  }
+}
+
+
+DegreeListPick<- lapply(AdjacencyListPick, function(x){
+  rowSums(as.matrix(x))
+  })
+
+
+
+GENOTYPEPick = covariates$GENOTYPE[covariates$GENOTYPE>=1]
+
+SEXPick = covariates$GENDER[covariates$GENOTYPE>=1]
+
+m = length(GENOTYPEPick)
+```
+
+```{r}
+
+pick1= c(63, 52, 60,62,164,166,121,123,74,158,92,93,94,95,96)
+
+sg = lapply(AdjacencyListPick, function(x){
+  pick = c(pick1, pick1+166)
+  as.matrix(x[pick,pick])
+})
+
+image.plot(sg[[4]])
+
+```
+
+
+```{r}
+
+plot_and_test <- function(total_edges){
+  
+  df = data.frame("total_edges"=total_edges, "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+  p = ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+ geom_jitter(width = 0.5, height = 0)+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+  print(p)
+  
+  x1 = df$total_edges[df$genotype==1]
+  x2 = df$total_edges[df$genotype==2]
+  
+  print(wilcox.test(x1,x2, alternative = "two.sided"))
+  print(kruskal.test(df$total_edges~as.factor(df$genotype)))
+
+}
+
+check4<- function(pick){
+  
+  #total
+  pick_L= pick
+  pick_R= pick+n_sg/2
+  pick_F = c(pick_L,pick_R)
+  
+  print("Both hemispheres")
+  #whole
+  total_edges = sapply(sg, function(x) sum(x[pick_F,pick_F]))
+  plot_and_test(total_edges)
+    print("Left hemispheres")
+
+  #Left
+  total_edges = sapply(sg, function(x) sum(x[pick_L,pick_L]))
+  plot_and_test(total_edges)
+    print("Right hemispheres")
+
+  #right
+  total_edges = sapply(sg, function(x) sum(x[pick_R,pick_R]))
+  plot_and_test(total_edges)
+    print("Between hemispheres")
+
+  #across
+  total_edges = sapply(sg, function(x) sum(x[pick_L,pick_R]))
+  plot_and_test(total_edges)
+
+
+}
+
+
+```
+List of regions:
+
+1.
+septum 63
+hippocampus 52
+hypothalamus circuit  60 62 164 166
+
+2.
+fimbria-fornix 121 123
+
+3.
+possibly thalamic nuclei  74 158
+
+4.
+cerebellum 92 93 94 95 96
+
+#Total connectivities in all 4 regions 
+
+```{r}
+n_sg= nrow(sg[[1]])
+pick2 = 1:(n_sg/2)
+check4(pick2)
+```
+
+
+##region 1:
+septum 63
+hippocampus 52
+hypothalamus circuit  60 62 164 166
+
+
+### septum and hippocampus
+```{r}
+pick2 = c(1:2)
+check4(pick2)
+```
+
+
+### hypothalamus circuit
+```{r}
+pick2 = c(3:6)
+check4(pick2)
+```
+
+
+
+### septum and hippocampus + hypothalamus circuit
+```{r}
+pick2 = c(1:6)
+check4(pick2)
+```
+
+
+
+total_edges = sapply(sg, function(x) sum(x[pick2, (pick2+n_sg/2) ]))
+
+df = data.frame("total_edges"=total_edges, "id"= as.factor((c(1:m))),"genotype"= as.factor(GENOTYPEPick),"sex"= as.factor(SEXPick))
+
+ggplot(data=df, aes(x= 1, y=total_edges,col=genotype,group=genotype))+ geom_point()+geom_jitter()+geom_boxplot(alpha=0.5)+facet_grid(~genotype)
+
+
+x1 = df$total_edges[df$genotype==1]
+x2 = df$total_edges[df$genotype==2]
+
+wilcox.test(x1,x2, alternative = "two.sided")
+kruskal.test(df$total_edges~as.factor(df$genotype))
+
+
+## region 2: fimbria-fornix 121 123
+```{r}
+pick2 = c(7:8)
+check4(pick2)
+```
+
+
+##region 3: possibly thalamic nuclei  74 158
+```{r}
+pick2 = c(9:10)
+check4(pick2)
+```
+
+
+##region 3: cerebellum
+
+```{r}
+pick2 = c(11:15)
+check4(pick2)
+```
