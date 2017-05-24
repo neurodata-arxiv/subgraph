@@ -743,3 +743,58 @@ check4(pick2)
     ## 
     ## data:  df$total_edges by as.factor(df$genotype)
     ## Kruskal-Wallis chi-squared = 0.53658, df = 1, p-value = 0.4639
+
+plot omni embedding for hypothalamus circuit
+--------------------------------------------
+
+``` r
+load(file ="omni_lda.RDa")
+
+plotOmni<- function(idx){
+  pick = omni_lda$vertex %in% idx
+  df = omni_lda[pick,]
+
+  df$vertex = factor(df$vertex, levels=idx)
+
+  
+  print(ggplot(df) +  geom_point(aes(x=x1, y=x2,col=genotype, group=id)) +
+                    # geom_line(aes(x=x1, y=decisionX2genotype), linetype=2) +
+         facet_wrap(~vertex, ncol=5,scales="free"))
+}
+```
+
+LDA errors are shown below
+
+``` r
+list_regions<- c(63,52,60,62,164,166, 121,123,74,158,92,93,94,95,96)
+list_regions = c(list_regions)
+
+plotOmni(c(60,62,164,166))
+```
+
+![](FigROItest/unnamed-chunk-12-1.png)
+
+``` r
+load("lda_vertex_error.RDa")
+print(lda_vertex$genotype_error[c(60,62,164,166)])
+```
+
+    ## [1] 0.4444444 0.3333333 0.3333333 0.3888889
+
+plot the other hemisphere
+
+``` r
+list_regions<- c(63,52,60,62,164,166, 121,123,74,158,92,93,94,95,96)
+list_regions = c(list_regions)
+
+plotOmni(c(60,62,164,166)+ n/2)
+```
+
+![](FigROItest/unnamed-chunk-13-1.png)
+
+``` r
+load("lda_vertex_error.RDa")
+print(lda_vertex$genotype_error[c(60,62,164,166)+ n/2])
+```
+
+    ## [1] 0.3888889 0.2222222 0.3888889 0.3333333

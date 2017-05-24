@@ -228,8 +228,8 @@ df0$decisionX2genotype = 0
 df0$decisionX2sex = 0
 
 trim<- function(x,y){
-  x[x>max(y)]<-NA
-  x[x<min(y)]<-NA
+  # x[x>(max(y)+0.1)]<-NA
+  # x[x<(min(y)-0.1)]<-NA
   x
 }
 
@@ -248,7 +248,7 @@ for(i in 1:n){
     sex_fit = lda(X[pick,], df$sex[pick])
     sex_error = sum(predict(sex_fit)$class != df$sex[pick]) / sum(pick)
     
-    df0$decisionX2sex[pick] = trim(getDecisionBoundary(sex_fit, df0$x1[pick]),                                    df0$x2[pick])
+    df0$decisionX2sex[pick] = trim(getDecisionBoundary(sex_fit, df0$x1[pick])                                   , df0$x2[pick])
 
     lda_error[i,] = c(geno_error,sex_error)
     
@@ -263,6 +263,10 @@ lda_vertex= data.frame("vertex" = c(1:n), "genotype_error" = lda_error[,1], "sex
 # df0$genotype.lda.rank = rep(genotype.lda.rank, m)
 # df0$sex.lda.rank = rep(sex.lda.rank, m)
 
+
+omni_lda = df0
+save(omni_lda,file="omni_lda.RDa")
+save(lda_vertex,file="lda_vertex_error.RDa")
 
 ```
 
