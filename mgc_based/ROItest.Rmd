@@ -100,6 +100,10 @@ m = length(GENOTYPEPick)
 ```
 
 ```{r}
+load(file ="omni_embedding.Rda")
+```
+
+```{r}
 
 pick1= c(63, 52, 60,62,164,166,121,123,74,158,92,93,94,95,96)
 
