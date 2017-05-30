@@ -2,9 +2,9 @@
 title: "Data Analysis"
 author: "Author"
 date: '`r Sys.Date()`'
-output:
-  md_document: 
-    variant: markdown_github
+# output:
+  # md_document: 
+    # variant: markdown_github
 ---
 
 ```{r global_options, include=FALSE}
