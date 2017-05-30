@@ -116,3 +116,16 @@ p <- plot_ly(plotly_C, x = ~x, y = ~y, z = ~z, color = ~as.factor(GENOTYPEPick),
                       zaxis = list(title = 'z')))
 
 p
+
+
+plotly_C = data.frame(coord)
+colnames(plotly_C)<- c("x","y","z")
+
+p <- plot_ly(plotly_C, x = ~x, y = ~y, z = ~z) %>%
+  add_markers() %>%
+  layout(scene = list(xaxis = list(title = 'x'),
+                      yaxis = list(title = 'y'),
+                      zaxis = list(title = 'z')))
+
+p
+data.frame(coord)
